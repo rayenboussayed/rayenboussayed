@@ -1,0 +1,9 @@
+node_modules
+.output
+.tanstack
+.git
+old
+assets
+*.md
+.eslintcache
+.vscode

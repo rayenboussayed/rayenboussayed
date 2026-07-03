@@ -1,0 +1,26 @@
+[
+  {
+    "id": "stability",
+    "value": "+70%",
+    "label": "System stability rescued",
+    "number": 70
+  },
+  {
+    "id": "coverage",
+    "value": "0→60%",
+    "label": "Test coverage in 6 months",
+    "number": 60
+  },
+  {
+    "id": "inference",
+    "value": "<200ms",
+    "label": "AI inference",
+    "number": 95
+  },
+  {
+    "id": "delivery",
+    "value": "100%",
+    "label": "On-time delivery",
+    "number": 100
+  }
+]

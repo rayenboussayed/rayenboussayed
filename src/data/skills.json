@@ -1,0 +1,61 @@
+[
+  {
+    "id": "languages",
+    "category": "Languages",
+    "items": ["TypeScript", "JavaScript", "Python", "SQL", "Bun"]
+  },
+  {
+    "id": "frontend",
+    "category": "Frontend / UI",
+    "items": [
+      "React",
+      "Next.js",
+      "Astro",
+      "Tailwind CSS",
+      "shadcn/ui",
+      "Framer Motion"
+    ]
+  },
+  {
+    "id": "mobile",
+    "category": "Mobile & AR",
+    "items": [
+      "React Native",
+      "Expo",
+      "Google ARCore",
+      "Three.js",
+      "React Three Fiber"
+    ]
+  },
+  {
+    "id": "backend",
+    "category": "Backend",
+    "items": ["Node.js", "NestJS", "ElysiaJS", "Bun.js", "Express", "Fastify"]
+  },
+  {
+    "id": "databases",
+    "category": "Databases",
+    "items": ["PostgreSQL", "MongoDB", "Redis", "Prisma"]
+  },
+  {
+    "id": "ai",
+    "category": "AI / ML",
+    "items": [
+      "Ollama",
+      "LangChain",
+      "RAG",
+      "Hugging Face",
+      "Prompt Engineering"
+    ]
+  },
+  {
+    "id": "security",
+    "category": "Security & Testing",
+    "items": ["OWASP", "ClamAV", "Jest", "Vitest", "TDD", "Playwright"]
+  },
+  {
+    "id": "devops",
+    "category": "DevOps / Cloud",
+    "items": ["Docker", "Vercel", "AWS", "CI/CD", "Git"]
+  }
+]

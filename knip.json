@@ -1,0 +1,6 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "tags": ["-lintignore"],
+  "entry": ["src/routes/**/*.{ts,tsx}", "src/router.tsx"],
+  "project": ["src/**/*.{ts,tsx}", "!old/**"]
+}

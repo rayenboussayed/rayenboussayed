@@ -1,0 +1,13 @@
+{
+  "contact": {
+    "heading": "Let's build something",
+    "subheading": "Stable enough to trust, and ambitious enough to matter. Available for freelance and contract engagement.",
+    "email": "rayen.boussayed@proton.me",
+    "bookCallLabel": "Book a call instead",
+    "submitLabel": "Send Message"
+  },
+  "footer": {
+    "copyright": "© {year} Rayen Boussayed. Built with TanStack Start + React.",
+    "backToTop": "Back to top"
+  }
+}
