@@ -21,7 +21,8 @@ export function Bubble({ position, scale, colorA, colorB }: BubbleProps) {
     const t = clock.getElapsedTime()
     if (matRef.current) {
       matRef.current.uniforms.uTime.value = t
-      matRef.current.uniforms.uGlow.value = 0.75 + Math.sin(t * 0.5) * 0.28
+      // toned down glow: 0.40±0.15 so rim stays colorful, not white-wash
+      matRef.current.uniforms.uGlow.value = 0.4 + Math.sin(t * 0.5) * 0.15
     }
   })
 

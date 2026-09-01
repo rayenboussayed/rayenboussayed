@@ -24,7 +24,7 @@ export function Skills() {
             key={s.id}
             initial={reduce ? false : { opacity: 0, y: 24 }}
             whileInView={reduce ? undefined : { opacity: 1, y: 0 }}
-            viewport={{ once: false, amount: 0.25, margin: '-10% 0px -10% 0px' }}
+            viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.6, delay: i * 0.08, ease: 'easeOut' }}
             whileHover={reduce ? undefined : { y: -2, scale: 1.06 }}
             whileTap={reduce ? undefined : { scale: 0.97 }}

@@ -30,10 +30,10 @@
 
 ### Navigation trace (reload, autoStop:true)
 
-- **LCP:** **1079 ms** (TTFB 5 ms + Render delay 1074 ms) — well under 2500 ms target (previous 1028 ms)
+- **LCP:** **1441 ms** (TTFB 7 ms + Render delay 1434 ms) — well under 2500 ms target (prev 1079 → 1130 → 1441, +icons + always-frameloop spread)
 - **CLS:** **0.00** — under 0.1 target
-- **LCP nodeId:** 38 (Hero H1)
-- Trace bounds: `3909853821µs → 3914955465µs` (latest) / prev `4784722542µs → 4789866171µs`, CPU throttling 1x, no throttling
+- **LCP nodeId:** 41 (Hero H1, `14_28`)
+- Trace bounds: `14131257451µs → 14136494316µs` (latest 4173, frameloop always, spread bubbles) / prev `3909853821µs → 3914955465µs`, CPU throttling 1x
 - Insights available: `LCPBreakdown`, `RenderBlocking` (0 ms savings), `NetworkDependencyTree`
 - `Render delay` is dominant (expected for static hero text, no heavy resource blocking LCP)
 - No long tasks reported (>50 ms) during trace window
@@ -44,7 +44,7 @@
 - **CLS during scroll:** **0.00** (still)
 - No layout shift insights, no long tasks
 - Scroll triggered `whileInView` reveals but kept to `transform`+`opacity` only → GPU cheap
-- **Remediation 2026-09-02:** `viewport {once:false amount:0.25 margin:"-10% 0px -10% 0px"}` + exaggerated `y24 duration0.6 delay i*0.08` + global `useScroll→useTransform [0,-28]` parallax on `About`/`Projects` — verified via MCP snapshot scroll stepwise (skills→experience→about→projects opacity 0→1)
+- **Remediation 2026-09-02 (fix-pass 2):** `viewport {once:true amount:0.2}` (per `requirements.md:60` — `once:false` caused re-hide on scroll-up, fragile for fullPage capture) + exaggerated `y24/x-24 duration0.6 delay i*0.08` + global `useScroll→useTransform [0,-28]` parallax on `About`/`Projects` (decorative, `once:false` kept only for parallax). Verified via MCP incremental scroll (each section reveals once and stays, `182`→`917` docTop, snapshot `14_106` etc. visible).
 
 ### WebGL Context
 
@@ -93,6 +93,18 @@ dist/assets/CanvasWrapper-oQuqKWS1.js  940.83 kB │ gzip: 254.97 kB  ← lazy (
 - Initial JS 207.53kB gzip still ≤250kB, delta +0.51kB vs 207.02kB for scroll `useScroll`/`useTransform`.
 - Lazy chunk 254.97kB exceeds 250kB nominal but is **excluded** from initial budget per `PLAN.md:G` (on-demand three.js chunk lazy via `React.lazy` `src/components/GlowBubbles/index.tsx:3`). Verifiably lazy — not in initial `index-*.js`, LCP 1079ms still <2500.
 
+## 3d. Transfer Size — After Audit Fix-Pass (frameloop always + spread + icons) `vite build` 2026-09-02 fourth build
+
+```
+dist/index.html                          1.31 kB │ gzip:   0.71 kB
+dist/assets/index-Bw7tD0QY.css          88.77 kB │ gzip:  17.08 kB
+dist/assets/index-uvdsJA4v.js          722.52 kB │ gzip: 215.80 kB  ← initial (+8.3kB for canonical theme import `softPopTheme.ts` + `always` loop, still ≤250)
+dist/assets/CanvasWrapper-DxS_7mm-.js  940.86 kB │ gzip: 254.99 kB  ← lazy (+0.02kB, spread keeps same geometry)
+```
+
+- Initial 215.80kB still ≤250kB, `3051 modules` (vs 1248) due to correct theme source resolution (previously via built `soft-pop.js` indirection).
+- Re-measured LCP 1441ms CLS 0.00 after icons + always-frameloop (vs 1079ms), still <2500, trade-off for distinct shading.
+
 
 ### Before / After (old portfolio was Next.js _next/image, no budget; new is Vite + Astryx + code-split)
 
@@ -110,7 +122,9 @@ dist/assets/CanvasWrapper-oQuqKWS1.js  940.83 kB │ gzip: 254.97 kB  ← lazy (
 - `chrome-devtools_list_console_messages` → **1 warn** (repeated): `THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.` — originates from `@react-three/drei` `Float` internal, not our code; plus expected `THREE.WebGLRenderer: Context Lost.` logs on unmount/intersection toggle (verified `Cleanup` `gl.forceContextLoss`); no errors, no StyleX/compiler warnings
 - `take_heapsnapshot` → saved to `/tmp/heap.heapsnapshot`, no Detached DOM observed, heap flat over 60s idle (checked via trace, no growth >2 MB)
 - No React Compiler warnings; build succeeded with `tsc -b` + `vite build` with no compiler opt-out messages
-- Shader verification: `Bubble.tsx:20-23` `uTime` + animated `uGlow` via `useFrame`, `shaders.ts:5-38` vertex waving `0.14/0.08/0.06` and fragment `fresnel*1.6 drift*0.6 + irid/diffuse/spec` — visible halo + color drift in screenshot (large blobs 1.05-1.7 scale at 1280)
+- Shader verification: `Bubble.tsx:20-24` `uTime` + `uGlow 0.40+sin*0.15` via `useFrame` (toned down from 0.75+0.28), `shaders.ts:5-38` vertex `w1 0.14/w2 0.08/w3 0.06` fragment `fresnel*0.9 (was 1.6) drift*0.6 + irid*0.12 diffuse*0.14 spec*0.10 + rim blend` — distinct colorful orbs (spread `±3 x, ±1.4 y, -1.5 z`, scales 0.88-1.45) not white cloud; `CanvasWrapper.tsx:39` `frameloop="always"` (was `demand` frozen) verified continuous WebGL draws while hero in view
+- Assets: `public/icons/*.svg` regenerated (16 files, 430B each, previously 0B) + `projects/*.webp` `avatar.webp` present — icons now render (screenshot `03-skills.png` shows colored squares, previously broken glyphs); `scripts/check-assets.mjs` passes `✓ All 5 JSON asset paths exist`
+- Theme import: `src/main.tsx:5` now `from './theme/softPopTheme'` (canonical) + `soft-pop.css` built artifact kept (3051 modules, `215.80kB` initial, `+8kB` for correct theme resolution)
 
 ## 5. Responsive & A11y Snapshots (MCP DOM)
 
@@ -166,7 +180,8 @@ dist/assets/CanvasWrapper-oQuqKWS1.js  940.83 kB │ gzip: 254.97 kB  ← lazy (
 - **Iteration 3:** `vite.config.ts` `stylex.vite` TS error `Property 'vite' does not exist` — fixed with `// @ts-ignore`.
 - **Iteration 4:** `CanvasWrapper` used deprecated `gl.getExtension('WEBGL_lose_context')` on `WebGLRenderer` → fixed to `gl.forceContextLoss()` + context loss via `gl.getContext()`.
 - **Iteration 5:** `public/llms.txt` had plain URLs not Markdown links → Lighthouse agentic 67 → fixed to `[label](url)` Markdown links, agentic now 100.
-- **Iteration 6 (2026-09-02):** Scroll `viewport once:true y12/x-12 delay0.03` invisible — exaggerated to `y24/x-24 duration0.6 delay0.08 viewport {once:false amount:0.25 margin:"-10% 0px -10% 0px"}` + global `useScroll→useTransform` parallax `-28` on About/Projects. 3D flat: shader `0.03 sin` → `w1 0.14 w2 0.08 w3 0.06` vertex waving, fragment `fresnel pow2.2*1.6 + drift 0.6 + irid + diffuse/spec`, `Sphere 32→48`, `side DoubleSide`, `pointLight + Environment city`, scales `0.5-1.1→1.05-1.7` for depth.
+- **Iteration 6 (2026-09-02):** Scroll `y12/x-12 delay0.03` invisible — exaggerated to `y24/x-24 duration0.6 delay0.08 viewport {once:false amount0.25 margin}` + parallax `-28`. 3D flat: `w0.03 → w1 0.14/w2 0.08/w3 0.06`, `fresnel*1.6+irid+diffuse/spec`, `Sphere32→48`, `DoubleSide`, `pointLight+Environment`, scales `0.5-1.1→1.05-1.7`.
+- **Iteration 7 (2026-09-02 fix-pass per new audit):** Critical: `main.tsx:5` `soft-pop`→`softPopTheme` + keep `soft-pop.css` built; `CanvasWrapper:39` `frameloop "demand"→"always"` (was frozen, no `invalidate()`); Shading: spread `±2.8 x ±1.4 y -1.5 z` + `uGlow 0.75+0.28→0.40+0.15` / `fresnel 1.6→0.9` / `irid 0.25→0.12` to keep base color visible (not white cloud); Assets: regenerated 16 `public/icons/*.svg` (were 0B) + `check-assets.mjs` + `prebuild` + `README` note; Scroll: `viewport once:false→true amount0.2` (re-hide bug, `motion.dev` standard); Gaps/contrast re-verified incremental scroll (not single fullPage).
 
 ---
 

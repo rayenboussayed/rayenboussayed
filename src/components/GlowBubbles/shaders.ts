@@ -36,20 +36,19 @@ export const bubbleFragmentShader = `
   void main() {
     vec3 n = normalize(vNormal);
     vec3 v = normalize(vViewDir);
-    // stronger Fresnel rim
-    float fresnel = pow(1.0 - max(dot(n, v), 0.0), 2.2) * 1.6;
-    // faster color drift
+    // softer Fresnel rim so base color stays visible (was *1.6, now 0.9)
+    float fresnel = pow(1.0 - max(dot(n, v), 0.0), 2.0) * 0.9;
     float drift = sin(uTime * 0.6 + vUv.x * 4.0 + length(vNormal) * 0.5) * 0.5 + 0.5;
     vec3 base = mix(uColorA, uColorB, drift);
-    // iridescence
     float irid = dot(n, vec3(0.6, 0.8, 0.4)) * 0.5 + 0.5;
-    vec3 iridColor = vec3(1.0, 0.6, 0.9) * irid * 0.25;
-    // diffuse depth cue (fake light from upper-right)
+    vec3 iridColor = vec3(1.0, 0.6, 0.9) * irid * 0.12;
     vec3 lightDir = normalize(vec3(0.8, 1.0, 0.6));
-    float diffuse = max(dot(n, lightDir), 0.0) * 0.22;
-    float spec = pow(max(dot(reflect(-lightDir, n), v), 0.0), 32.0) * 0.18;
-    vec3 finalColor = base + fresnel * vec3(1.0, 0.95, 1.0) * uGlow + iridColor + diffuse * base + spec;
-    float alpha = 0.72 + fresnel * 0.28;
+    float diffuse = max(dot(n, lightDir), 0.0) * 0.14;
+    float spec = pow(max(dot(reflect(-lightDir, n), v), 0.0), 32.0) * 0.10;
+    // keep base visible: rim is blended, not additive white wash
+    vec3 rim = vec3(1.0, 0.95, 1.0) * fresnel * uGlow;
+    vec3 finalColor = base * (0.88 + diffuse) + rim * 0.55 + iridColor + spec;
+    float alpha = 0.65 + fresnel * 0.22;
     gl_FragColor = vec4(finalColor, alpha);
   }
 `

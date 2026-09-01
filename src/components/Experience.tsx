@@ -20,7 +20,7 @@ export function Experience() {
             key={item.id}
             initial={reduce ? false : { opacity: 0, x: -24 }}
             whileInView={reduce ? undefined : { opacity: 1, x: 0 }}
-            viewport={{ once: false, amount: 0.25, margin: '-10% 0px -10% 0px' }}
+            viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.6, delay: i * 0.08, ease: 'easeOut' }}
           >
             <Card padding={4} className="soft-pop-card" style={{ display: 'grid', gridTemplateColumns: '64px 1fr', gap: 16, alignItems: 'start' }}>

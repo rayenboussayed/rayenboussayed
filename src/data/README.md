@@ -16,6 +16,7 @@ All visible copy is in `src/data/*.json`. Edit JSON, save, refresh — no `.tsx`
 **Rules:**
 - Keep JSON valid (no trailing commas). Run `npm run build` to validate — Zod will throw with the exact field if something is wrong.
 - Images: put files in `public/` and reference as `/file.webp` with explicit `imageAlt`. For OG: `public/og.png` 1200×630 (used by `seo.json:ogImage`).
+- **Asset locations:** New skill icons → `public/icons/` (e.g. `/icons/my-icon.svg`), experience icons → `public/icons/`, project images → `public/projects/` (e.g. `/projects/my-project.webp`), avatar → `public/avatar.webp`. Run `npm run check:assets` before commit — it verifies every `icon`/`image`/`avatar` path in `src/data/*.json` exists under `public/` and fails if any 404 would occur.
 - Socials: `icon` values map to simple text labels currently; future can be SVG keys.
 - `lastmod` in `public/sitemap.xml` should be updated on deploy (currently 2026-09-01) to match `seo.json` canonical date.
 - Do not edit `src/lib/content.ts` — it just validates and re-exports.

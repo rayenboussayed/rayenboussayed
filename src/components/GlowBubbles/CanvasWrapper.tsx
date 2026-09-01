@@ -21,13 +21,15 @@ function Cleanup() {
   return null
 }
 
+// Spread wider so spheres read as distinct orbs from camera [0,0,5] fov45
+// x ±3, y ±1.4, z depth -1.5..-0.4 gives parallax without heavy overlap
 const bubbles: Array<{ pos: [number, number, number]; scale: number; colorA: string; colorB: string }> = [
-  { pos: [-2.0, 0.55, -0.4], scale: 1.45, colorA: '#FF6B9D', colorB: '#7B61FF' },
-  { pos: [1.9, 0.75, -0.2], scale: 1.7, colorA: '#4FD1C5', colorB: '#7B61FF' },
-  { pos: [0.15, -0.65, -0.6], scale: 1.25, colorA: '#FBBF24', colorB: '#FF6B9D' },
-  { pos: [-0.85, 1.05, -0.35], scale: 1.15, colorA: '#7B61FF', colorB: '#4FD1C5' },
-  { pos: [2.35, -0.45, -0.5], scale: 1.35, colorA: '#FBBF24', colorB: '#4FD1C5' },
-  { pos: [-1.35, -0.85, -0.3], scale: 1.05, colorA: '#FF6B9D', colorB: '#FBBF24' },
+  { pos: [-2.8, 0.6, -1.2], scale: 1.2, colorA: '#FF6B9D', colorB: '#7B61FF' },
+  { pos: [2.6, 0.9, -0.8], scale: 1.45, colorA: '#4FD1C5', colorB: '#7B61FF' },
+  { pos: [0.0, -1.1, -1.5], scale: 1.0, colorA: '#FBBF24', colorB: '#FF6B9D' },
+  { pos: [-1.2, 1.4, -0.9], scale: 0.95, colorA: '#7B61FF', colorB: '#4FD1C5' },
+  { pos: [3.0, -0.7, -1.0], scale: 1.15, colorA: '#FBBF24', colorB: '#4FD1C5' },
+  { pos: [-1.8, -1.0, -0.5], scale: 0.88, colorA: '#FF6B9D', colorB: '#FBBF24' },
 ]
 
 export function GlowCanvas({ visible }: { visible: boolean }) {
@@ -36,7 +38,7 @@ export function GlowCanvas({ visible }: { visible: boolean }) {
   return (
     <Canvas
       dpr={[1, 2]}
-      frameloop="demand"
+      frameloop="always"
       gl={{ antialias: true, alpha: true }}
       camera={{ position: [0, 0, 5], fov: 45 }}
       style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
