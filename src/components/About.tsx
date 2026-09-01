@@ -12,10 +12,11 @@ export function About() {
   const reduce = useReducedMotion()
   const { scrollYProgress } = useScroll()
   const parallaxY = useTransform(scrollYProgress, [0, 1], [0, -28])
+  // Parallax is decorative; disabled when user prefers reduced motion
   return (
     // @ts-ignore — id/aria
     <Section role="region" id="about" aria-labelledby="about-heading" padding={6} variant="section">
-      <motion.div style={{ y: reduce ? 0 : (parallaxY as unknown as number) } as never}>
+      <motion.div style={{ y: reduce ? 0 : parallaxY } as never}>
         <motion.div
           initial={reduce ? false : { opacity: 0, y: 24 }}
           whileInView={reduce ? undefined : { opacity: 1, y: 0 }}

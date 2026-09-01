@@ -32,7 +32,7 @@ export function Projects() {
             style={{ display: 'flex', transformPerspective: 800 } as never}
           >
             <Card padding={4} className="soft-pop-card" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 12, overflow: 'hidden' }}>
-              <motion.div style={{ y: reduce ? 0 : (parallaxY as unknown as number), overflow: 'hidden', borderRadius: 12 } as never}>
+              <motion.div style={{ y: reduce ? 0 : parallaxY, overflow: 'hidden', borderRadius: 12 } as never}>
                 <img src={p.image} alt={p.imageAlt} width={640} height={360} loading="lazy" style={{ width: '100%', height: 180, objectFit: 'cover', borderRadius: 12, border: '2px solid var(--color-border)' }} />
               </motion.div>
               <Heading level={3}>{p.title}</Heading>
