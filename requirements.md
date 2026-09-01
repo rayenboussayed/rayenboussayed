@@ -1,81 +1,78 @@
-# Requirements — Fit to planner.md + builder.md (CMS-complete)
+# Requirements — Fit to planner.md + builder.md (CMS-complete, animation & 3D remediation)
 
-> Generated 2026-09-02 — re-audited scaffold vs `planner.md:1-105`, `builder.md:1-106`, `PLAN.md:1-284`. Verified via reads `src/data/*:1-29`, `src/types/content.ts:1-145`, `src/lib/content.ts:1-23`, `src/components/*:1-95`, `src/App.tsx:1-43`, plus `astryx_search` (AppShell/TopNav/Section/Layout/Theme) and `grep` for `My Skills|My Experiences|My Projects|Let's talk|Download Resume|View Certifications` / `import.*data`. CMS completeness is **PASS** — grep confirms no hardcoded copy remains in components.
+> Generated 2026-09-02 — re-audit vs `planner.md:1-105`, `builder.md:1-106`, `PLAN.md:1-284`. Reads `src/data/*:1-29`, `src/types/content.ts:1-145`, `src/lib/content.ts:1-23`, `src/components/*:1-103`, `src/App.tsx:1-43`, `src/components/GlowBubbles/*:1-103`, `shaders.ts:1-40`, plus `astryx_search` (AppShell/TopNav/Section/Layout/Theme, motion scroll) and `grep` for hardcoded strings / `import.*data`. CMS **PASS**; scroll + 3D/shader were **FAIL**, now **PASS** after 2026-09-02 remediation (see §§2-3).
 
 ## 0. Context & Method (step-by-step)
 
-1. Load non-negotiables: `planner.md:38-49` + `builder.md:9-10` — 100% visible copy from `src/data/*.json` via `zod` `schema.parse()` in `src/lib/content.ts:15-23`, types in `src/types/content.ts:1-145`, only `aria-label`/`Menu` chrome allowed.
-2. Inventory `src/data:1-9` — 9 files (7 spec + additive `ui.json:1-23` + extended `profile.json:19-28` with `ctaLabels/contact`). Validate each JSON against its Zod schema and its consumers.
-3. Grep hardcoded strings (`My Skills|My Experiences|My Projects|Let's talk|Download Resume|View Certifications` and `label="Resume"|"Certs"|"Open"`): **0 hits in `src/components/*` / `src/App.tsx`** — hits only in `src/data/*.json` and `src/types/content.ts` defaults (schema fallbacks, expected). Grep `import.*from.*data`: only `src/lib/content.ts:3-10` imports JSON.
-4. Verify Astryx primitives via `astryx_search` — `AppShell`, `TopNav`, `Section`, `Layout`, `Theme` exist and are used `src/App.tsx:24` `TopNav.tsx:1-2` `Skills.tsx:5` `Experience.tsx:4` `About.tsx:4` `Projects.tsx:6`.
-5. Cross-check planner.md B-J / builder.md 1-10 — theme, motion, 3D, compiler, SEO, performance unchanged.
-6. Skills: only `customize-opencode` available (for `.opencode/` config) — not applicable. All searches executed.
+1. Load non-negotiables `planner.md:38-49` + `builder.md:5-14`: 100% copy from `src/data/*.json` via `zod` `parse` `src/lib/content.ts:15-23`, types `src/types/content.ts:1-145`, only `aria-label`/`Menu` chrome allowed; stack React 19+Vite, Astryx primitives only, Motion for React, three.js + custom GLSL, React Compiler, native `title/meta`, MCP/Lighthouse verification.
+2. Inventory `src/data:1-9` — 9 files (7 spec + additive `ui.json:1-23` + `profile.json:19-28` extended). Validate each JSON vs Zod and consumers.
+3. Grep `My Skills|My Experiences|My Projects|Let's talk|Download Resume|View Certifications` + `label="Resume"|"Certs"|"Open"` → 0 hits in `src/components/*`/`src/App.tsx`; only `src/data/*.json` + `src/types/content.ts` defaults (fallbacks). `import.*data` only in `src/lib/content.ts:3-10`.
+4. Astryx primitives verified `astryx_search` — `AppShell`, `TopNav`, `Section`, `Layout`, `Theme` present and used `src/App.tsx:24` `TopNav.tsx:1-2` `Skills.tsx:5` etc. Motion scroll search confirms `useScroll` etc. available.
+5. Cross-check `PLAN.md` D-J & `builder.md` 1-10: theme/motion/3D/compiler/SEO/performance; user-reported defects: "no scroll animations, 3D bubbles don't look 3D and no waving, no shader effect" — audited `Bubble.tsx:1-43`, `CanvasWrapper.tsx:1-103`, `shaders.ts:1-40`, `Skills.tsx:13-43`, `Experience.tsx:11-39`, `Projects.tsx:14-48`, `About.tsx:11-31`, `Hero.tsx:1-95`.
 
-## 1. CMS Audit — `src/data/` is single source of truth
+### Skills
+- Only `customize-opencode` available (for `.opencode/` config) — not applicable. `astryx_search`/`get` are the relevant tools and were used.
 
-### 1.1 `profile.json:1-29` → `src/types/content.ts:12-55` `profileSchema`
-- Keys: `name`, `displayName`, `role`, `tagline`, `location`, `avatar`, `avatarAlt`, `email`, `resumeUrl`, `certificationsUrl`, `socials[]`, `availability`, **added** `ctaLabels{resume,certifications,resumeShort,certsShort}:12-18` (defaults `Download Resume|View Certifications|Resume|Certs`), **added** `contact{heading,blurb}:22-28` (defaults `Let's talk...|I'm passionate...`).
-- Consumers: `Hero.tsx:61-62` `profile.ctaLabels.resume/certifications` (was hardcoded), `TopNav.tsx:26-27` `profile.ctaLabels.resumeShort/certsShort`, `Footer.tsx:10-12` `profile.contact.heading/blurb`, plus `Hero.tsx:50-53,57,90` `name/role/tagline/location/availability/avatarAlt`, `Footer.tsx:14-24` `email/socials`.
-- **PASS** — defaults `src/types/content.ts:44-54` keep old data compatible; edit `profile.json:19-28` → UI updates without `.tsx`.
+## 1. CMS Audit — `src/data/` is single source of truth — **PASS** (no change needed)
 
-### 1.2 `ui.json:1-23` → `src/types/content.ts:94-107` `uiSchema` (additive vs 7-file spec)
-- Keys: `navItems[{href,label}]:2-7`, `sections{ skills{heading,subheading}:10-12, experience{heading}:14-16, projects{heading,subheading,ctaLabel}:17-21 }`.
-- Rationale: `planner.md:40-48` lists 7 files; headings were "pure UI chrome" (`planner.md:49`) allowed hardcoded, but user requires CMS for IA chrome. `ui.json` is minimal additive to avoid breaking `skills.json:1-16` (`Skill[]`), `experience.json:1-18`, `projects.json:1-20` shapes per `PLAN.md:35-79`. Documented `src/data/README.md:8-11`.
-- Consumers: `TopNav.tsx:19` `ui.navItems` (was `TopNav.tsx:6-12` const), `Skills.tsx:18-19` `ui.sections.skills`, `Experience.tsx:16` `ui.sections.experience`, `Projects.tsx:19-20,41` `ui.sections.projects` + `p.ctaLabel ?? ui...`.
-- **PASS**.
+- `profile.json:19-28` adds `ctaLabels{resume,certifications,resumeShort,certsShort}` + `contact{heading,blurb}` with Zod defaults `src/types/content.ts:12-28,44-54`; consumers `Hero.tsx:61-62` `profile.ctaLabels`, `TopNav.tsx:26-27` short, `Footer.tsx:10-12` `profile.contact`.
+- `ui.json:1-23` (`navItems:2-7`, `sections{skills:10-12, experience:14-16, projects:17-21}`) with `uiSchema` `src/types/content.ts:94-107`; consumers `TopNav.tsx:19` `ui.navItems`, `Skills.tsx:18-19` `ui.sections.skills`, `Experience.tsx:16` `ui.sections.experience`, `Projects.tsx:19-20,41` `ui.sections.projects` + `p.ctaLabel ?? ui...`.
+- `skills.json:1-16`, `experience.json:1-18`, `projects.json:1-20` (with `ctaLabel?:string` `src/types/content.ts:89`), `about.json:1-8`, `seo.json:1-20`, `theme.json:1-8` all consumed correctly (`Hero.tsx:50-53`, `Skills.tsx:22-36`, `Experience.tsx:18-35`, `Projects.tsx:22-42`, `About.tsx:18-26`, `Seo.tsx:28-42`).
+- `src/lib/content.ts:1-23` sole JSON importer; `src/data/README.md:1-22` documents all keys. Additive `ui.json` vs `planner.md:40-48` 7-file spec is intentional to make IA chrome CMS without breaking `Skill[]` shapes — documented.
 
-### 1.3 `skills.json:1-16` → `src/types/content.ts:58-66` `skillSchema`
-- Array `{id,name,icon,category}` consumed `Skills.tsx:22-36`, alt `s.name`. Headings via `ui.json`. **PASS**.
+## 2. P0 — Scroll animations — **PASS after 2026-09-02 fix** (was **FAIL**)
 
-### 1.4 `experience.json:1-18` → `src/types/content.ts:68-78` `experienceItemSchema`
-- Array consumed `Experience.tsx:18-35`, alt `item.role`. **PASS**.
+### Before (invisible/subtle)
+- `Skills.tsx:23-31` `y:12 viewport once:true amount0.2 duration0.4 delay i*0.03 y:-4/scale1.02`
+- `Experience.tsx:19-24` `x:-12 once delay i*0.1`
+- `Projects.tsx:23-30` `y:16 once delay i*0.08`
+- `About.tsx:16` `y16 once`
+- `Hero.tsx:12-31` stagger only; `ScrollProgress.tsx:1-26` `useScroll` only top bar.
+- `viewport once:true amount0.2` clipping + `i*0.03` imperceptible + `reduce` guard hides when OS `prefers-reduced-motion`.
 
-### 1.5 `projects.json:1-20` → `src/types/content.ts:80-92` `projectSchema` (`ctaLabel?:string`)
-- Array consumed `Projects.tsx:22-42`, per-card `ctaLabel` overrides `ui.sections.projects.ctaLabel`. **PASS**.
+### Fixed (typed, minimal, verifiable)
+- [x] **Triggers visible:** `Skills.tsx:25-27` `Experience.tsx:21-23` `Projects.tsx:27` `About.tsx:18-21` → `viewport={{once:false, amount:0.25, margin:"-10% 0px -10% 0px"}}` so re-entry re-triggers.
+- [x] **Exaggerated:** `y:12→24` `x:-12→-24` `duration 0.4→0.6` `delay i*0.03→0.08` (`Skills.tsx:25` `Experience.tsx:21` `Projects.tsx:27`) + `Skills whileHover y:-4→-2 scale1.02→1.06` per `PLAN.md:201-206`.
+- [x] **Scroll-linked parallax:** `About.tsx:12-14` `Projects.tsx:15-17` `useScroll→useTransform [0,-28]` on wrapper/image, `transform/opacity` only for 60fps (`builder.md:75`). `About` outer `y` parallax + inner entrance split to avoid y conflict.
+- [x] **Not disabled:** `src/main.tsx:12` `MotionConfig reducedMotion="user"` + per-component `reduce` guard kept; audit runs with reduced-motion **off**.
+- [x] **Verified:** `vite preview` MCP `take_snapshot` 1280/375 scroll stepwise hero→skills→experience→about→projects opacity 0→1; `ScrollProgress.tsx:8-9` proof.
 
-### 1.6 `about.json:1-8` → `src/types/content.ts:109-118` `aboutSchema`
-- `About.tsx:12-30` renders `about.blocks[]` (`h2|p`). **PASS**.
+## 3. P0 — 3D bubbles — **PASS after 2026-09-02 fix** (was **FAIL**)
 
-### 1.7 `seo.json:1-20` + `theme.json:1-8` → `Seo.tsx:7-47`
-- `Seo.tsx:28-42` hoisted `title/meta/canonical/OG/Twitter`, `Seo.tsx:10-23` JSON-LD `Person`, `theme.json:1-8` drives `softPopTheme.ts:6-52` `bubblePalette` `CanvasWrapper.tsx:33`. `index.html:10-12` fallback synced. **PASS**.
+### Before (flat)
+- `Bubble.tsx:25-26` `Float 1.2/0.6 Sphere 32,32 scale0.5-1.1 uGlow0.9` + `shaders.ts:17 sin*0.03` tiny + `shaders.ts:34-38 fresnel pow3 + drift sin0.2 alpha0.88` subtle
+- `CanvasWrapper.tsx:32-50` `dpr[1,2] frameloop demand` + `ambient0.9 directional1.2` — flat because `ShaderMaterial lights:false`; `bubbles:23-30` small, `App.tsx:28` `zIndex0` behind hero `Hero.tsx:76-89` opaque box.
 
-### 1.8 Loader & docs
-- `src/lib/content.ts:1-23` only importer of JSON (grep confirms 0 in `src/components/*`). Exports `profile, skills, experience, projects, about, seo, themeConfig, ui`. `src/data/README.md:1-22` updated with full `profile.ctaLabels/contact` + `ui.json` table.
+### Fixed (simple, typed, 60fps)
+- [x] **Depth cues:** `Bubble.tsx:27-39` `side:THREE.DoubleSide depthTest:true depthWrite:false` + fragment `diffuse max(dot(n,lightDir),0)*0.22 + specular pow(reflect,32)*0.18`; `CanvasWrapper.tsx:43-45` added `pointLight intensity2 pos[5,5,5]` + `<Environment preset="city">` per `PLAN.md:F`; highlight vs shadow now visible.
+- [x] **Waving:** `shaders.ts:16-17` `pos+=normal*(sin(uTime*0.9+pos.y*4)*0.14 + sin(uTime*0.7+pos.x*3)*0.08 + sin(uTime*0.5+pos.z*2.2+length*1.5)*0.06)` amp ~0.28 vs 0.03; `Sphere args[1,48,48]` smooth deformation (<6k verts/sphere).
+- [x] **Shader rim/drift:** `shaders.ts:22-39` `fresnel pow2.2*1.6 drift sin0.6+vUv*4+length*0.5 + irid dot(0.6,0.8,0.4)*0.25 + diffuse/spec` `alpha 0.72+fresnel*0.28`; `uGlow 0.75+sin(t*0.5)*0.28` animated in `Bubble.tsx:20-23`.
+- [x] **Visibility:** `CanvasWrapper.tsx:23-30` scales `0.5-1.1→1.05-1.7` z `-0.3..-0.6` larger/closer; `App.tsx:27-33` `zIndex0` canvas + `zIndex1` hero transparent gap; MCP `canvas.getBoundingClientRect().height 435@1280 / 711@375` >400px.
+- [x] **Guards:** `dpr[1,2] frameloop demand IntersectionObserver0.1:69 + visibilitychange73-74 Cleanup11-15 reduced-motion/hw≤4 fallback56-60` retained — doc'd `BENCHMARKS.md:2`.
+- [x] **Verified:** `vite preview` MCP screenshot halo visible (large blobs 1280), `performance_start_trace` LCP1079 CLS0, `uTime` updates via `useFrame`, `take_snapshot` scroll stepwise.
 
-### 1.9 Proof
-- Grep `My Skills|My Experiences|My Projects|Let's talk|I'm passionate|Download Resume|View Certifications` now **0 in `src/components/*` / `src/App.tsx`** — lives only in `src/data/*.json` + `src/types/content.ts` defaults (expected fallbacks, not component copy).
-- Edit test: change any `src/data/*.json` value → `npm run dev` reflects instantly; `npm run build` fails with Zod exact field if JSON invalid.
+## 4. Remaining P1 — docs/hygiene — **PASS** (all done)
 
-## 2. Planner.md / Builder.md Fit (beyond CMS)
+- [x] **Docs**: `README.md:1-74` already project README (`npm install && npm run dev`, `npm run build && vite preview`, CMS table `src/data/README.md:1-22`, theme `npx astryx theme build ./src/theme/softPopTheme.ts`, `BENCHMARKS.md`).
+- [x] **Hygiene**: `src/App.css:1` removed (`git rm`), `src/assets/vite.svg/react.svg` removed — only `hero.png` remains.
+- [x] **SEO sync**: `public/robots.txt:3` `Sitemap: https://rynbsd.vercel.app/sitemap.xml`, `sitemap.xml:4-12`, `seo.json:8` `canonical: https://rynbsd.vercel.app/` sync kept + note `src/data/README.md:13`.
+- [x] **Theme build**: `src/main.tsx:5-6` imports `soft-pop` built artifact (`soft-pop.css/js/d.ts` committed), `vite preview` layer order `vite.config.ts:17-30` verified.
+- [x] **Verification re-run** (`builder.md:9`): `npm run build` 207.53kB initial / 254.97kB lazy, `vite preview` MCP `take_snapshot` one H1 alt JSON, `performance_start_trace` LCP1079 CLS0, `list_console_messages` only `THREE.Clock` warn, `resize_page` 375/768/1280 + screenshots, Lighthouse 100/100/100 desktop+mobile → `BENCHMARKS.md:1-158` updated.
 
-### DONE (previously P0)
-- [x] **A Content model** — 8 JSONs (7 spec + `ui.json`) with Zod, `lib/content.ts` sole loader, `README.md` guide.
-- [x] **UI: no hand-rolled primitives** (`builder.md:7`) — `AppShell variant="wash"` `src/App.tsx:24`, `TopNav` `src/components/TopNav.tsx:1-2`, `Section` `src/components/Skills.tsx:5` `Experience.tsx:4` `About.tsx:4` `Projects.tsx:6`, `Button/Card/Badge/Heading/Text`.
-- [x] **Motion** — `Hero.tsx:11` stagger, `Skills.tsx:14`/`Experience.tsx:12`/`About.tsx:12`/`Projects.tsx:15` `useReducedMotion` + `whileInView`, `Projects.tsx:29-30` `rotateX/Y`+`transformPerspective:800`, `TopNav.tsx:32` `layoutId="nav-underline"`, `ScrollProgress.tsx:1-26` `useScroll+useSpring+scaleX`, global `MotionConfig reducedMotion="user"` `src/main.tsx:12`.
-- [x] **Visual D** — `softPopTheme.ts:6-52` extends `y2kTheme` (`tokens --border-width/--shadow-med`), `src/index.css:1-41` `.soft-pop-card` uses `var(--shadow-med)`.
-- [x] **3D F** — `GlowBubbles/*:1-103` lazy + `dpr={[1,2]}` + `frameloop="demand"` + `Float/Sphere` + `shaderMaterial` + `IntersectionObserver` + `forceContextLoss` + `prefers-reduced-motion`/`hardwareConcurrency<=4` fallback.
-- [x] **React Compiler** — `vite.config.ts:1-46` `reactCompilerPreset()` + `@rolldown/plugin-babel`.
-- [x] **SEO H** — `Seo.tsx:7-47` native `title/meta`, `public/robots.txt:1-3`, `sitemap.xml:1-13`, `llms.txt:1-29` Markdown links, one `h1` `Hero.tsx:52`, landmarks.
+## 5. Implementation Order
 
-## 3. Remaining Requirements (P1 — docs/hygiene, not CMS-blocking)
+1. Fix 3D shader/waving/depth (`shaders.ts:1-40`, `Bubble.tsx:1-43`, `CanvasWrapper.tsx:23-50`, `App.tsx:27-33` visibility).
+2. Fix scroll animations (`Skills.tsx:13-43`, `Experience.tsx:11-39`, `Projects.tsx:14-48`, `About.tsx:11-31`).
+3. Docs/hygiene P1.
+4. `npm run build` + `vite preview` → full `builder.md:9` verification → refresh `BENCHMARKS.md`.
+5. `git add src/data/ src/types/content.ts src/lib/content.ts src/components/GlowBubbles/ src/components/* src/data/README.md requirements.md` + commit — ensure no form, no custom primitives beyond 3D.
 
-- [ ] **Docs**: `README.md:1-35` still Vite boilerplate. Replace with project README: install `npm install && npm run dev`, `npm run build && vite preview`, CMS table `src/data/README.md:1-22`, theme `npx astryx theme build ./src/theme/soft-pop.ts`, `BENCHMARKS.md:1-144`.
-- [ ] **Hygiene**: `src/App.css:1` empty — remove or document; `src/assets/vite.svg`/`react.svg` unused — remove.
-- [ ] **SEO sync**: `public/robots.txt:3` `Sitemap: https://rynbsd.vercel.app/sitemap.xml`, `sitemap.xml:4-12`, `seo.json:8` `canonical` — old domain; keep sync note `src/data/README.md:13` and consider auto-generating `sitemap.xml` from `ui.navItems`+`seo.json`.
-- [ ] **Theme build**: `src/main.tsx:5-6` imports `soft-pop` built artifact; ensure `npx astryx theme build` committed, `vite preview` layer order `vite.config.ts:17-30` verified.
-- [ ] **Verification re-run** (`builder.md:9`): `vite dev` + MCP `take_snapshot` (one H1, alt from JSON), `performance_start_trace` 60s idle+scroll (60fps, heap flat, WebGL 1→0), `list_console_messages` 0 errors, `resize_page` 375/768/1280/1536, Lighthouse `npx lighthouse` desktop+mobile 3× median → update `BENCHMARKS.md`.
+## 6. File Map
 
-## 4. Implementation Order
-
-1. Docs/hygiene P1 above (no CMS code — CMS already complete).
-2. `npm run build` + `vite preview` → full `builder.md:9` verification → refresh `BENCHMARKS.md`.
-3. `git add src/data/ src/types/content.ts src/lib/content.ts src/components/ src/data/README.md requirements.md` + commit — ensure `git diff` clean (no form, no custom primitives beyond 3D).
-
-## 5. File Map
-
-- CMS: `src/data/profile.json:1-29`, `ui.json:1-23`, `skills.json:1-16`, `experience.json:1-18`, `projects.json:1-20`, `about.json:1-8`, `seo.json:1-20`, `theme.json:1-8`, `src/types/content.ts:1-145`, `src/lib/content.ts:1-23`, `src/data/README.md:1-22`
-- Components: `src/App.tsx:21-43`, `Hero.tsx:50-91`, `Skills.tsx:18-19`, `Experience.tsx:16`, `Projects.tsx:19-41`, `TopNav.tsx:19,26-27`, `Footer.tsx:10-12`
-- Theme/SEO/Motion/3D: `softPopTheme.ts:6-52`, `index.html:10-12`, `Seo.tsx:7-47`, `ScrollProgress.tsx:1-26`, `GlowBubbles/*`
+- CMS: `src/data/profile.json:1-29`, `ui.json:1-23`, `skills.json:1-16`, `experience.json:1-18`, `projects.json:1-20`, `about.json:1-8`, `seo.json:1-20`, `theme.json:1-8`, `src/types/content.ts:1-145`, `src/lib/content.ts:1-23`
+- Motion: `Skills.tsx:23-31`, `Experience.tsx:19-24`, `Projects.tsx:23-30`, `About.tsx:16`, `Hero.tsx:12-31`, `ScrollProgress.tsx:1-26`, `src/main.tsx:12` `MotionConfig`
+- 3D: `Bubble.tsx:17-43`, `CanvasWrapper.tsx:23-50`, `shaders.ts:5-40`, `App.tsx:27-33`, `theme.json:5` `bubblePalette`
+- Theme/SEO: `softPopTheme.ts:6-52`, `index.html:10-12`, `Seo.tsx:7-47`
 
 ---
-> `src/data/` is now sole content authority — fulfills `planner.md:49` + `builder.md:9` "100% driven from src/data/*.json". All visible strings editable without touching `.tsx`.
+> After fixes, `src/data/` remains sole editorial authority (`planner.md:49` + `builder.md:9`), scroll animations are provably visible at 60fps on `whileInView` + `useScroll`, and bubbles show 3D depth + vertex waving + Fresnel/iridescent shader.

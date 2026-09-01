@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Canvas, useThree } from '@react-three/fiber'
+import { Environment } from '@react-three/drei'
 import { Bubble } from './Bubble'
 import { themeConfig } from '../../lib/content'
 
@@ -21,12 +22,12 @@ function Cleanup() {
 }
 
 const bubbles: Array<{ pos: [number, number, number]; scale: number; colorA: string; colorB: string }> = [
-  { pos: [-2.2, 0.5, -1], scale: 0.9, colorA: '#FF6B9D', colorB: '#7B61FF' },
-  { pos: [1.8, 0.8, -0.5], scale: 1.1, colorA: '#4FD1C5', colorB: '#7B61FF' },
-  { pos: [0.2, -0.6, -1.2], scale: 0.7, colorA: '#FBBF24', colorB: '#FF6B9D' },
-  { pos: [-0.8, 1.1, -0.8], scale: 0.6, colorA: '#7B61FF', colorB: '#4FD1C5' },
-  { pos: [2.4, -0.4, -1], scale: 0.8, colorA: '#FBBF24', colorB: '#4FD1C5' },
-  { pos: [-1.4, -0.9, -0.6], scale: 0.5, colorA: '#FF6B9D', colorB: '#FBBF24' },
+  { pos: [-2.0, 0.55, -0.4], scale: 1.45, colorA: '#FF6B9D', colorB: '#7B61FF' },
+  { pos: [1.9, 0.75, -0.2], scale: 1.7, colorA: '#4FD1C5', colorB: '#7B61FF' },
+  { pos: [0.15, -0.65, -0.6], scale: 1.25, colorA: '#FBBF24', colorB: '#FF6B9D' },
+  { pos: [-0.85, 1.05, -0.35], scale: 1.15, colorA: '#7B61FF', colorB: '#4FD1C5' },
+  { pos: [2.35, -0.45, -0.5], scale: 1.35, colorA: '#FBBF24', colorB: '#4FD1C5' },
+  { pos: [-1.35, -0.85, -0.3], scale: 1.05, colorA: '#FF6B9D', colorB: '#FBBF24' },
 ]
 
 export function GlowCanvas({ visible }: { visible: boolean }) {
@@ -40,8 +41,10 @@ export function GlowCanvas({ visible }: { visible: boolean }) {
       camera={{ position: [0, 0, 5], fov: 45 }}
       style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
     >
-      <ambientLight intensity={0.9} />
-      <directionalLight position={[3, 4, 5]} intensity={1.2} />
+      <ambientLight intensity={0.85} />
+      <directionalLight position={[3, 4, 5]} intensity={1.15} />
+      <pointLight position={[5, 5, 5]} intensity={2} distance={18} decay={2} />
+      <Environment preset="city" />
       {bubbles.map((b, i) => (
         <Bubble key={i} position={b.pos} scale={b.scale} colorA={palette[i % palette.length] ?? b.colorA} colorB={palette[(i + 1) % palette.length] ?? b.colorB} />
       ))}

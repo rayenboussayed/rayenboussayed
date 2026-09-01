@@ -1,6 +1,8 @@
 /**
  * GLSL shaders for glowing bubble material.
- * Fresnel rim + slow color drift. Keep low complexity for 60fps.
+ * - Vertex: multi-frequency waving displacement (visible undulation)
+ * - Fragment: Fresnel rim + faster color drift + iridescence + diffuse depth
+ * Keep complexity low for 60fps (no loops, <20 ALU).
  */
 export const bubbleVertexShader = `
   varying vec3 vNormal;
@@ -12,9 +14,12 @@ export const bubbleVertexShader = `
     vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
     vViewDir = -mvPosition.xyz;
     vUv = uv;
-    // subtle vertex displacement
+    // visible waving: multi-sine combo ~0.28 max displacement
     vec3 pos = position;
-    pos += normal * sin(uTime * 0.3 + length(position)) * 0.03;
+    float w1 = sin(uTime * 0.9 + pos.y * 4.0) * 0.14;
+    float w2 = sin(uTime * 0.7 + pos.x * 3.0) * 0.08;
+    float w3 = sin(uTime * 0.5 + pos.z * 2.2 + length(pos) * 1.5) * 0.06;
+    pos += normal * (w1 + w2 + w3);
     gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
   }
 `
@@ -31,10 +36,20 @@ export const bubbleFragmentShader = `
   void main() {
     vec3 n = normalize(vNormal);
     vec3 v = normalize(vViewDir);
-    float fresnel = pow(1.0 - max(dot(n, v), 0.0), 3.0);
-    float drift = sin(uTime * 0.2 + vUv.x * 3.0) * 0.5 + 0.5;
-    vec3 color = mix(uColorA, uColorB, drift);
-    vec3 finalColor = color + fresnel * uGlow;
-    gl_FragColor = vec4(finalColor, 0.88);
+    // stronger Fresnel rim
+    float fresnel = pow(1.0 - max(dot(n, v), 0.0), 2.2) * 1.6;
+    // faster color drift
+    float drift = sin(uTime * 0.6 + vUv.x * 4.0 + length(vNormal) * 0.5) * 0.5 + 0.5;
+    vec3 base = mix(uColorA, uColorB, drift);
+    // iridescence
+    float irid = dot(n, vec3(0.6, 0.8, 0.4)) * 0.5 + 0.5;
+    vec3 iridColor = vec3(1.0, 0.6, 0.9) * irid * 0.25;
+    // diffuse depth cue (fake light from upper-right)
+    vec3 lightDir = normalize(vec3(0.8, 1.0, 0.6));
+    float diffuse = max(dot(n, lightDir), 0.0) * 0.22;
+    float spec = pow(max(dot(reflect(-lightDir, n), v), 0.0), 32.0) * 0.18;
+    vec3 finalColor = base + fresnel * vec3(1.0, 0.95, 1.0) * uGlow + iridColor + diffuse * base + spec;
+    float alpha = 0.72 + fresnel * 0.28;
+    gl_FragColor = vec4(finalColor, alpha);
   }
 `

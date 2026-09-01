@@ -18,12 +18,16 @@ export function Bubble({ position, scale, colorA, colorB }: BubbleProps) {
   const matRef = useRef<THREE.ShaderMaterial>(null!)
 
   useFrame(({ clock }) => {
-    if (matRef.current) matRef.current.uniforms.uTime.value = clock.getElapsedTime()
+    const t = clock.getElapsedTime()
+    if (matRef.current) {
+      matRef.current.uniforms.uTime.value = t
+      matRef.current.uniforms.uGlow.value = 0.75 + Math.sin(t * 0.5) * 0.28
+    }
   })
 
   return (
-    <Float speed={1.2} rotationIntensity={0.6} floatIntensity={0.8} floatingRange={[-0.2, 0.2]}>
-      <Sphere args={[1, 32, 32]} position={position} scale={scale}>
+    <Float speed={1.15} rotationIntensity={0.55} floatIntensity={0.9} floatingRange={[-0.22, 0.22]}>
+      <Sphere args={[1, 48, 48]} position={position} scale={scale}>
         <shaderMaterial
           ref={matRef}
           vertexShader={bubbleVertexShader}
@@ -36,6 +40,8 @@ export function Bubble({ position, scale, colorA, colorB }: BubbleProps) {
           }}
           transparent
           depthWrite={false}
+          depthTest
+          side={THREE.DoubleSide}
         />
       </Sphere>
     </Float>

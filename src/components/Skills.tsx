@@ -22,12 +22,12 @@ export function Skills() {
         {skills.map((s, i) => (
           <motion.div
             key={s.id}
-            initial={reduce ? false : { opacity: 0, y: 12 }}
+            initial={reduce ? false : { opacity: 0, y: 24 }}
             whileInView={reduce ? undefined : { opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.2 }}
-            transition={{ duration: 0.4, delay: i * 0.03 }}
-            whileHover={reduce ? undefined : { y: -4, scale: 1.02 }}
-            whileTap={reduce ? undefined : { scale: 0.98 }}
+            viewport={{ once: false, amount: 0.25, margin: '-10% 0px -10% 0px' }}
+            transition={{ duration: 0.6, delay: i * 0.08, ease: 'easeOut' }}
+            whileHover={reduce ? undefined : { y: -2, scale: 1.06 }}
+            whileTap={reduce ? undefined : { scale: 0.97 }}
             style={{ display: 'flex' }}
           >
             <Card padding={4} variant="default" className="soft-pop-card" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, textAlign: 'center' }}>

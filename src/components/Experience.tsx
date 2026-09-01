@@ -18,10 +18,10 @@ export function Experience() {
         {experience.map((item, i) => (
           <motion.div
             key={item.id}
-            initial={reduce ? false : { opacity: 0, x: -12 }}
+            initial={reduce ? false : { opacity: 0, x: -24 }}
             whileInView={reduce ? undefined : { opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: i * 0.1 }}
+            viewport={{ once: false, amount: 0.25, margin: '-10% 0px -10% 0px' }}
+            transition={{ duration: 0.6, delay: i * 0.08, ease: 'easeOut' }}
           >
             <Card padding={4} className="soft-pop-card" style={{ display: 'grid', gridTemplateColumns: '64px 1fr', gap: 16, alignItems: 'start' }}>
               <img src={item.icon} alt={item.role} width={64} height={64} loading="lazy" style={{ width: 64, height: 64, borderRadius: 12, objectFit: 'cover', border: '2px solid var(--color-border)' }} />

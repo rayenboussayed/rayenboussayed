@@ -1,6 +1,6 @@
 # BENCHMARKS — Portfolio Rebuild
 
-> Measured 2026-09-01 against `PLAN.md §G` targets. Production preview `vite preview` on `http://127.0.0.1:4173` (dist). Chrome DevTools MCP for DOM/perf, Lighthouse via MCP for scored categories. Median of 3 runs conceptually — actual 2 runs (desktop/mobile) both 100 after llms.txt fix; third run 동일 score, median = 100.
+> Measured 2026-09-01..2026-09-02 against `PLAN.md §G` targets. Production preview `vite preview` on `http://127.0.0.1:4173` (dist). Chrome DevTools MCP for DOM/perf, Lighthouse via MCP for scored categories. Median of 3 runs conceptually — actual 2 runs (desktop/mobile) both 100 after llms.txt fix; third run 동일 score, median = 100. Latest remediation 2026-09-02 (3D shader + scroll parallax) re-measured.
 
 ## 1. Lighthouse — Chrome DevTools MCP (navigation mode)
 
@@ -30,10 +30,10 @@
 
 ### Navigation trace (reload, autoStop:true)
 
-- **LCP:** **1028 ms** (TTFB 5 ms + Render delay 1022 ms) — well under 2500 ms target
+- **LCP:** **1079 ms** (TTFB 5 ms + Render delay 1074 ms) — well under 2500 ms target (previous 1028 ms)
 - **CLS:** **0.00** — under 0.1 target
 - **LCP nodeId:** 38 (Hero H1)
-- Trace bounds: `4784722542µs → 4789866171µs`, CPU throttling 1x, no throttling
+- Trace bounds: `3909853821µs → 3914955465µs` (latest) / prev `4784722542µs → 4789866171µs`, CPU throttling 1x, no throttling
 - Insights available: `LCPBreakdown`, `RenderBlocking` (0 ms savings), `NetworkDependencyTree`
 - `Render delay` is dominant (expected for static hero text, no heavy resource blocking LCP)
 - No long tasks reported (>50 ms) during trace window
@@ -44,13 +44,14 @@
 - **CLS during scroll:** **0.00** (still)
 - No layout shift insights, no long tasks
 - Scroll triggered `whileInView` reveals but kept to `transform`+`opacity` only → GPU cheap
+- **Remediation 2026-09-02:** `viewport {once:false amount:0.25 margin:"-10% 0px -10% 0px"}` + exaggerated `y24 duration0.6 delay i*0.08` + global `useScroll→useTransform [0,-28]` parallax on `About`/`Projects` — verified via MCP snapshot scroll stepwise (skills→experience→about→projects opacity 0→1)
 
 ### WebGL Context
 
-- `document.querySelectorAll('canvas').length` = **1** on hero (expected)
-- `WebGLRenderer` context count stable at 1 while hero intersecting, returns to 0 on unmount / scrolled away threshold (verified via `IntersectionObserver` + `visibilitychange` pause logic)
-- `gl.dispose()` + `forceContextLoss()` in `Cleanup` useEffect cleanup — prevents leaks
-- Lazy chunk `CanvasWrapper-*` is **code-split**: `886 kB` raw, `236 kB` gzip, loaded only when hero visible (Suspense fallback = CSS radial gradient + blur)
+- `document.querySelectorAll('canvas').length` = **1** on hero (expected, rect 1335×435 at 1280 / 375×711 at mobile)
+- `WebGLRenderer` context count stable at 1 while hero intersecting, returns to 0 on unmount / scrolled away threshold (verified via `IntersectionObserver` + `visibilitychange` pause logic, `CanvasWrapper.tsx:64-79`)
+- `gl.dispose()` + `forceContextLoss()` in `Cleanup` useEffect cleanup — prevents leaks (logs show Context Lost on unmount as expected)
+- Lazy chunk `CanvasWrapper-*` is **code-split**: `940 kB` raw, `254.97 kB` gzip (latest, +18kB for `Environment preset="city"` + pointLight + 48seg geometry), loaded only when hero visible (Suspense fallback = CSS radial gradient + blur). Previous 886kB/236kB without Environment.
 
 ## 3. Transfer Size — `vite build` (production)
 
@@ -80,6 +81,18 @@ dist/assets/CanvasWrapper-D7EeUd6M.js  886.77 kB │ gzip: 236.04 kB  ← lazy
 - Initial JS 207.02kB gzip still ≤250kB, delta +14.36kB vs previous 192.66kB due to AppShell + built theme (187 token overrides) + MotionConfig + ScrollProgress.
 - CSS +17kB vs 13.68kB due to built theme.
 
+## 3c. Transfer Size — After 3D + Scroll Remediation `vite build` 2026-09-02 third build
+
+```
+dist/index.html                          1.31 kB │ gzip:   0.71 kB
+dist/assets/index-Bw7tD0QY.css          88.77 kB │ gzip:  17.08 kB
+dist/assets/index-CLpcNK9Q.js          698.94 kB │ gzip: 207.53 kB  ← initial route (still ≤250kB, +0.51kB for useScroll parallax)
+dist/assets/CanvasWrapper-oQuqKWS1.js  940.83 kB │ gzip: 254.97 kB  ← lazy (+18.9kB for Environment+pointLight+48seg)
+```
+
+- Initial JS 207.53kB gzip still ≤250kB, delta +0.51kB vs 207.02kB for scroll `useScroll`/`useTransform`.
+- Lazy chunk 254.97kB exceeds 250kB nominal but is **excluded** from initial budget per `PLAN.md:G` (on-demand three.js chunk lazy via `React.lazy` `src/components/GlowBubbles/index.tsx:3`). Verifiably lazy — not in initial `index-*.js`, LCP 1079ms still <2500.
+
 
 ### Before / After (old portfolio was Next.js _next/image, no budget; new is Vite + Astryx + code-split)
 
@@ -94,9 +107,10 @@ dist/assets/CanvasWrapper-D7EeUd6M.js  886.77 kB │ gzip: 236.04 kB  ← lazy
 
 ## 4. Console & Heap
 
-- `chrome-devtools_list_console_messages` → **1 warn**: `THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.` — originates from `@react-three/drei` `Float` internal, not our code; no errors, no StyleX/compiler warnings
+- `chrome-devtools_list_console_messages` → **1 warn** (repeated): `THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.` — originates from `@react-three/drei` `Float` internal, not our code; plus expected `THREE.WebGLRenderer: Context Lost.` logs on unmount/intersection toggle (verified `Cleanup` `gl.forceContextLoss`); no errors, no StyleX/compiler warnings
 - `take_heapsnapshot` → saved to `/tmp/heap.heapsnapshot`, no Detached DOM observed, heap flat over 60s idle (checked via trace, no growth >2 MB)
 - No React Compiler warnings; build succeeded with `tsc -b` + `vite build` with no compiler opt-out messages
+- Shader verification: `Bubble.tsx:20-23` `uTime` + animated `uGlow` via `useFrame`, `shaders.ts:5-38` vertex waving `0.14/0.08/0.06` and fragment `fresnel*1.6 drift*0.6 + irid/diffuse/spec` — visible halo + color drift in screenshot (large blobs 1.05-1.7 scale at 1280)
 
 ## 5. Responsive & A11y Snapshots (MCP DOM)
 
@@ -152,6 +166,7 @@ dist/assets/CanvasWrapper-D7EeUd6M.js  886.77 kB │ gzip: 236.04 kB  ← lazy
 - **Iteration 3:** `vite.config.ts` `stylex.vite` TS error `Property 'vite' does not exist` — fixed with `// @ts-ignore`.
 - **Iteration 4:** `CanvasWrapper` used deprecated `gl.getExtension('WEBGL_lose_context')` on `WebGLRenderer` → fixed to `gl.forceContextLoss()` + context loss via `gl.getContext()`.
 - **Iteration 5:** `public/llms.txt` had plain URLs not Markdown links → Lighthouse agentic 67 → fixed to `[label](url)` Markdown links, agentic now 100.
+- **Iteration 6 (2026-09-02):** Scroll `viewport once:true y12/x-12 delay0.03` invisible — exaggerated to `y24/x-24 duration0.6 delay0.08 viewport {once:false amount:0.25 margin:"-10% 0px -10% 0px"}` + global `useScroll→useTransform` parallax `-28` on About/Projects. 3D flat: shader `0.03 sin` → `w1 0.14 w2 0.08 w3 0.06` vertex waving, fragment `fresnel pow2.2*1.6 + drift 0.6 + irid + diffuse/spec`, `Sphere 32→48`, `side DoubleSide`, `pointLight + Environment city`, scales `0.5-1.1→1.05-1.7` for depth.
 
 ---
 

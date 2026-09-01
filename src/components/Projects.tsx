@@ -4,7 +4,7 @@ import { Text } from '@astryxdesign/core/Text'
 import { Badge } from '@astryxdesign/core/Badge'
 import { Button } from '@astryxdesign/core/Button'
 import { Section } from '@astryxdesign/core/Section'
-import { motion, useReducedMotion } from 'motion/react'
+import { motion, useReducedMotion, useScroll, useTransform } from 'motion/react'
 import { projects, ui } from '../lib/content'
 
 /**
@@ -13,6 +13,8 @@ import { projects, ui } from '../lib/content'
  */
 export function Projects() {
   const reduce = useReducedMotion()
+  const { scrollYProgress } = useScroll()
+  const parallaxY = useTransform(scrollYProgress, [0, 1], [0, -28])
   return (
     // @ts-ignore — id/aria
     <Section role="region" id="projects" aria-labelledby="projects-heading" padding={6} variant="section">
@@ -22,15 +24,17 @@ export function Projects() {
         {projects.map((p, i) => (
           <motion.div
             key={p.id}
-            initial={reduce ? false : { opacity: 0, y: 16 }}
+            initial={reduce ? false : { opacity: 0, y: 24 }}
             whileInView={reduce ? undefined : { opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: i * 0.08 }}
+            viewport={{ once: false, amount: 0.25, margin: '-10% 0px -10% 0px' }}
+            transition={{ duration: 0.6, delay: i * 0.08, ease: 'easeOut' }}
             whileHover={reduce ? undefined : { y: -6, rotateX: 2, rotateY: -2 } as never}
             style={{ display: 'flex', transformPerspective: 800 } as never}
           >
-            <Card padding={4} className="soft-pop-card" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <img src={p.image} alt={p.imageAlt} width={640} height={360} loading="lazy" style={{ width: '100%', height: 180, objectFit: 'cover', borderRadius: 12, border: '2px solid var(--color-border)' }} />
+            <Card padding={4} className="soft-pop-card" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 12, overflow: 'hidden' }}>
+              <motion.div style={{ y: reduce ? 0 : (parallaxY as unknown as number), overflow: 'hidden', borderRadius: 12 } as never}>
+                <img src={p.image} alt={p.imageAlt} width={640} height={360} loading="lazy" style={{ width: '100%', height: 180, objectFit: 'cover', borderRadius: 12, border: '2px solid var(--color-border)' }} />
+              </motion.div>
               <Heading level={3}>{p.title}</Heading>
               <Text style={{ flex: 1, lineHeight: 1.6 }}>{p.description}</Text>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
