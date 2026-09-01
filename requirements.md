@@ -1,135 +1,81 @@
-# Requirements — Remediation to Fit planner.md + builder.md (CMS-complete)
+# Requirements — Fit to planner.md + builder.md (CMS-complete)
 
-> Generated 2026-09-02 — full audit of current scaffold vs `planner.md:1-105`, `builder.md:1-106`, `PLAN.md:1-284`. Verified via `grep` hardcoded-string scans, `astryx_search` (AppShell/TopNav/Section/Layout/Theme), file reads `src/components/*:1-95`, `src/data/*:1-21`, `src/lib/content.ts:1-21`, `src/types/content.ts:1-100`. Step-by-step CMS completeness is the focus: every visible string must be editable via `src/data/` alone.
+> Generated 2026-09-02 — audit of current scaffold vs `planner.md:1-105`, `builder.md:1-106`, `PLAN.md:1-284`. Verified via file reads `src/data/*:1-29`, `src/types/content.ts:1-145`, `src/lib/content.ts:1-23`, `src/components/*:1-95`, `src/App.tsx:1-43`, `src/data/README.md:1-22`, plus `astryx_search` (AppShell/TopNav/Section/Layout/Theme) and `grep` for hardcoded strings / `import.*data`. CMS completeness is now **PASS**.
 
-## 0. Context & Method
+## 0. Context & Method (step-by-step)
 
-- **Git state**: `src/*`, `public/*`, `PLAN.md`, `BENCHMARKS.md` remain untracked scaffold; `README.md` modified. All changes are greenfield Vite 19 + Astryx rebuild.
-- **Skills used**: `astryx_search` (AppShell, TopNav, Section, Layout, Theme, Button/Card/Badge) — verified primitives exist; `customize-opencode` evaluated — not applicable (no `.opencode/` edits). Searches cover components, theme tokens, layout.
-- **Searches executed**: `grep` for hardcoded headings/CTAs (`My Skills|My Experiences|My Projects|Let's talk|Download Resume|Resume|Certs|Open`), `grep` for `import.*from.*data` (ensures only `src/lib/content.ts:3-9` imports JSON), `astryx_search` for CMS/layout primitives.
-- **Baseline**: `BENCHMARKS.md:1-144` Lighthouse 100/100/100, LCP 1028ms, CLS 0, initial JS 192.66kB gzip — performance already meets `PLAN.md` G.
+1. Load non-negotiables: `planner.md:38-49` + `builder.md:5-10` — 100% of visible copy from `src/data/*.json` via `zod` `schema.parse()` in `src/lib/content.ts:15-23`, types in `src/types/content.ts:1-145`, only `aria-label`/`Menu` chrome allowed hardcoded.
+2. Inventory `src/data/` — now 9 entries `src/data:1-9` (previous 7 + `ui.json:1-23` + `profile` extended `profile.json:19-28`). Check each JSON against its Zod schema and its consumers in `src/components/*`.
+3. Grep hardcoded user strings (`My Skills|My Experiences|My Projects|Let's talk|Download Resume|View Certifications|Resume|Certs|Open`) and `import.*from.*data` — confirm only `src/lib/content.ts:3-10` imports JSON after fix.
+4. Verify Astryx primitives via `astryx_search` — `AppShell`, `TopNav`, `Section`, `Layout` exist and are used `src/App.tsx:24` `src/components/TopNav.tsx:1-2` `src/components/Skills.tsx:5` etc.
+5. Cross-check remaining planner.md B-J / builder.md 1-10 — theme, motion, 3D, compiler, SEO, performance.
+6. Skills checked: only `customize-opencode` available (for `.opencode/` config) — not applicable here. All searches done.
 
-## 1. Non-negotiable rule (planner.md 1A + builder.md 0. Content)
+## 1. CMS Audit — `src/data/` is now single source of truth
 
-> Every `src/data/*.json` must be single source of truth — zero copy hardcoded in `.tsx` except `aria-label` fallbacks and pure UI chrome like `"Menu"` (`planner.md:49`, `builder.md:9`, `PLAN.md:21`). Validation via `zod` `schema.parse()` in `src/lib/content.ts:15-21` and types `src/types/content.ts:1-100`.
+### 1.1 `src/data/profile.json:1-29` → `src/types/content.ts:12-55` `profileSchema`
+- **Keys**: `name`, `displayName`, `role`, `tagline`, `location`, `avatar`, `avatarAlt`, `email`, `resumeUrl`, `certificationsUrl`, `socials[]`, `availability`, **new** `ctaLabels{resume,certifications,resumeShort,certsShort}:12-18` (defaults `Download Resume|View Certifications|Resume|Certs`), **new** `contact{heading,blurb}:22-28` (defaults `Let's talk...|I'm passionate...`).
+- **Consumers**: `Hero.tsx:61-62` now `profile.ctaLabels.resume/certifications` (was hardcoded `Download Resume|View Certifications`), `TopNav.tsx:26-27` now `profile.ctaLabels.resumeShort/certsShort` (was `Resume|Certs`), `Footer.tsx:10-12` now `profile.contact.heading/blurb` (was hardcoded `Let's talk|I'm passionate`), plus `Hero.tsx:50-53,57` `name/role/tagline/location/availability`, `Hero.tsx:90` `avatarAlt`, `Footer.tsx:14-24` `email/socials`.
+- **Status**: **PASS** — defaults in `src/types/content.ts:44-54` keep old data compatible; edit `profile.json:19-28` and UI updates without `.tsx` touch.
 
-**Current violation count**: 8 hardcoded user-visible strings outside CMS (see §2). Must be moved to `src/data/` so a non-dev can edit without touching components (goal of `src/data/README.md:1-21`).
+### 1.2 `src/data/ui.json:1-23` → `src/types/content.ts:94-107` `uiSchema` (additive vs planner.md 7-file spec)
+- **Keys**: `navItems[{href,label}]:2-7` and `sections{ skills{heading,subheading}:10-12, experience{heading}:14-16, projects{heading,subheading,ctaLabel}:17-21 }`.
+- **Why additive**: `planner.md:40-48` lists 7 files with headings considered "pure UI chrome" (`planner.md:49`) that could be hardcoded. User requirement "everything CMS via `src/data/`" is stricter, so `ui.json` is the minimal additive to make IA chrome editable without wrapping `skills.json:1-16` etc. into breaking `{heading,items}` objects. Keep `skills.json:1-16` as `Skill[]`, `experience.json:1-18` as `ExperienceItem[]`, `projects.json:1-20` as `Project[]` to preserve `PLAN.md:35-79` shape; headings live in `ui.json` instead. Documented in `src/data/README.md:8-11`.
+- **Consumers**: `TopNav.tsx:19` maps `ui.navItems` (was const `TopNav.tsx:6-12`), `Skills.tsx:18-19` `ui.sections.skills.heading/subheading` (was `My Skills|Tools I use`), `Experience.tsx:16` `ui.sections.experience.heading` (was `My Experiences`), `Projects.tsx:19-20` `ui.sections.projects.heading/subheading` + `Projects.tsx:41` `p.ctaLabel ?? ui.sections.projects.ctaLabel` with fallback `Open` (was hardcoded `My Projects|Open source...|Open`).
+- **Status**: **PASS**.
 
-## 2. CMS Audit — `src/data/` vs Components
+### 1.3 `src/data/skills.json:1-16` → `src/types/content.ts:58-66` `skillSchema`
+- Array of `{id,name,icon,category}` consumed `Skills.tsx:22-36`. Headings now via `ui.json`; icons use `alt={s.name}`. **PASS**.
 
-### 2.1 `src/data/profile.json:1-19` — `src/types/content.ts:12-26` `profileSchema`
-- **CMS today**: `name`, `displayName`, `role`, `tagline`, `location`, `avatar`, `avatarAlt`, `email`, `resumeUrl`, `certificationsUrl`, `socials[]`, `availability` — consumed correctly in `Hero.tsx:50-91`, `Footer.tsx:14-24`, `Seo.tsx:10-23`.
-- **Hardcoded gap**:
-  - `Hero.tsx:61` `label="Download Resume"` and `Hero.tsx:62` `label="View Certifications"` — CTA labels not in JSON.
-  - `TopNav.tsx:34` `label="Resume"` and `TopNav.tsx:35` `label="Certs"` — same URLs, different short labels, also hardcoded.
-  - `Footer.tsx:10` `h2 "Let's talk for something special"` and `Footer.tsx:11` `p "I'm passionate..."` — contact section copy hardcoded, not in profile.
-- **Required change**: Extend `profileSchema` with optional `ctaLabels?: { resume:string, certifications:string, resumeShort:string, certsShort:string }` (defaults to current strings) and `contact?: { heading:string, blurb:string }`. Populate `profile.json` and replace components with `profile.ctaLabels.resume` etc. Update `src/data/README.md:7` row.
+### 1.4 `src/data/experience.json:1-18` → `src/types/content.ts:68-78` `experienceItemSchema`
+- Array consumed `Experience.tsx:18-35`. Heading via `ui.json`. `icon` alt uses `item.role`. **PASS**.
 
-### 2.2 `src/data/skills.json:1-16` — `src/types/content.ts:29-37` `skillSchema`
-- **CMS today**: array of `{id,name,icon,category}` — consumed in `Skills.tsx:22-36`.
-- **Hardcoded gap**:
-  - `Skills.tsx:18` `Heading "My Skills"` and `Skills.tsx:19` `Text "Tools I use to ship products end-to-end..."` — section heading/subheading not in data.
-- **Required change**: Change shape from `Skill[]` to `{ heading:string, subheading:string, items:Skill[] }` with Zod `skillsFileSchema = z.object({heading:z.string(), subheading:z.string(), items:z.array(skillSchema)})` or keep array for backwards compat and add wrapper `src/data/ui.json` (preferred minimal — see §2.7). If wrapper chosen, add migration shim in `src/lib/content.ts:16` that handles both shapes. Update `Skills.tsx:18-19` to read `skills.heading` / `skills.subheading`.
+### 1.5 `src/data/projects.json:1-20` → `src/types/content.ts:80-92` `projectSchema` (added `ctaLabel?:string`)
+- Array consumed `Projects.tsx:22-42`. Per-card `ctaLabel` overrides `ui.sections.projects.ctaLabel`. **PASS**.
 
-### 2.3 `src/data/experience.json:1-18` — `src/types/content.ts:40-49`
-- **Hardcoded gap**: `Experience.tsx:16` `Heading "My Experiences"` — not in data.
-- **Required change**: Same pattern as Skills — add `heading` to file wrapper or `ui.json`. `Experience.tsx:16` must read from data.
+### 1.6 `src/data/about.json:1-8` → `src/types/content.ts:109-118` `aboutSchema`
+- `About.tsx:12-30` renders `about.blocks[]` (`h2|p`) — first block `h2 "About Me"` already CMS. **PASS** (unchanged).
 
-### 2.4 `src/data/projects.json:1-20` — `src/types/content.ts:51-62`
-- **CMS today**: `id,title,description,url,tags[],image,imageAlt` — consumed in `Projects.tsx:22-43`.
-- **Hardcoded gap**:
-  - `Projects.tsx:19` `Heading "My Projects"` and `Projects.tsx:20` `Text "Open source..."` — heading/subheading hardcoded.
-  - `Projects.tsx:41` `Button label="Open"` — CTA label hardcoded (same for both cards, not per-project).
-- **Required change**: Add `heading/subheading` wrapper (or `ui.json`) and optional `ctaLabel?:string` per project (default "Open") to `projectSchema`. Replace `Projects.tsx:19-20,41` with data.
+### 1.7 `src/data/seo.json:1-20` + `src/data/theme.json:1-8` + `Seo.tsx:7-47`
+- `Seo.tsx:28-42` React 19 hoisted `title/meta/canonical/OG/Twitter`, `Seo.tsx:10-23` JSON-LD `Person/ProfilePage`, `theme.json:1-8` drives `softPopTheme.ts:6-52` `bubblePalette` `CanvasWrapper.tsx:33`. `index.html:10-12` fallback comment synced to `seo.json` **PASS**.
 
-### 2.5 `src/data/about.json:1-8` — `src/types/content.ts:64-73`
-- **Status**: **PASS** — `About.tsx:12-30` renders `about.blocks[]` with no hardcoded copy. First block `h2 "About Me"` is already CMS. No change needed.
+### 1.8 Loader & docs
+- `src/lib/content.ts:1-23` is **only** place importing JSON (`grep import.*from.*data` confirms 0 matches in `src/components/*`). Exports `profile, skills, experience, projects, about, seo, themeConfig, ui`. `src/data/README.md:1-22` updated with full table `profile.ctaLabels/contact`, `ui.json` nav/sections, `skills/experience/projects` heading delegation.
 
-### 2.6 `src/data/seo.json:1-20` + `src/data/theme.json:1-8` + `Seo.tsx:7-47`
-- **Status**: **PASS** — `Seo.tsx:28-42` hoists `title/meta/canonical/OG/Twitter` via React 19, `profile.json` JSON-LD `Seo.tsx:10-23`, `theme.json:1-8` drives `softPopTheme.ts:6-52` `bubblePalette` `CanvasWrapper.tsx:33`. `index.html:10-12` fallback comment already synced to `seo.json` (P0 fixed).
+### 1.9 CMS completeness proof
+- `grep -r "My Skills|My Experiences|My Projects|Let's talk for something special|I'm passionate about building|Download Resume|View Certifications|label=\"Resume\"|label=\"Certs\"|label=\"Open\""` in `src/components/*` and `src/App.tsx` now returns **0** — all strings live only in `src/data/*.json` or `src/types/content.ts` defaults (schema fallbacks, not component copy).
+- Edit test: change any `src/data/*.json` value (`profile.name`, `ui.sections.skills.heading`, `about.blocks[1].text`, `skills.json[0].name`) → `npm run dev` reflects instantly, `npm run build` validates via `schema.parse()` error with exact field if invalid.
 
-### 2.7 `TopNav.tsx:6-12` navigation CMS
-- **Hardcoded gap**: `TopNav.tsx:6-12` `links[]` const `Home/Skills/Experience/About/Projects` with `href="#hero"` etc. — not editable via `src/data/`. `builder.md:53-62` requires anchor sections driven by IA; nav order should be CMS.
-- **Required change**: Create `src/data/ui.json` (or `nav.json`) with `navItems: {href,label}[]` and `sections: {skills:{heading,subheading}, experience:{heading}, projects:{heading,subheading}}`. Define `uiSchema` in `src/types/content.ts:91-100` alongside `themeConfigSchema`, export `ui` from `src/lib/content.ts:1-21`, consume in `TopNav.tsx:7-12` and section headings. Alternative: reuse `seo.json:entries[].route` but keep explicit `ui.json` for labels. Document in `src/data/README.md:5-14`.
+## 2. Planner.md / Builder.md Fit (beyond CMS)
 
-## 3. CMS Completeness Checklist (builder.md 10. Final polish)
+### Fixed (previously P0, now DONE)
+- [x] **A Content model** — 8 JSONs (7 spec + additive `ui.json`) with Zod schemas, `lib/content.ts` sole loader, `README.md` guide.
+- [x] **UI: no hand-rolled primitives** (`builder.md:7`) — `AppShell variant="wash"` `src/App.tsx:24`, `TopNav` `src/components/TopNav.tsx:1-2` (`AstryxTopNav`/`TopNavItem`/`TopNavHeading`), `Section` `src/components/Skills.tsx:5` `Experience.tsx:4` `About.tsx:4` `Projects.tsx:6`, `Button/Card/Badge/Heading/Text` elsewhere. Layer order `vite.config.ts:17-30` intact.
+- [x] **Motion** (`builder.md:6`, `PLAN.md:195-211`) — `Hero.tsx:11` `useReducedMotion` stagger, `Skills.tsx:14`/`Experience.tsx:12`/`About.tsx:12`/`Projects.tsx:15` `useReducedMotion` guards + `whileInView`, `Projects.tsx:29-30` `rotateX/Y` + `transformPerspective:800`, `TopNav.tsx:32` `layoutId="nav-underline"`, `ScrollProgress.tsx:1-26` `useScroll+useSpring+scaleX`, global `MotionConfig reducedMotion="user"` `src/main.tsx:12`.
+- [x] **Visual D** — `softPopTheme.ts:6-52` extends `y2kTheme` with `color accent`, `typography`, `radius`, `tokens --border-width/--shadow-med/--color-*`, `components card/button` (card `borderWidth 3px` + `borderRadius 20px`, button `variant:primary boxShadow var(--shadow-med)`). `src/index.css:1-41` `.soft-pop-card` uses `var(--shadow-med, var(--soft-pop-shadow))`.
+- [x] **3D F** — `GlowBubbles/*:1-103` lazy + `Canvas dpr={[1,2]}` + `frameloop="demand"` + `Float/Sphere` + `shaderMaterial` + `IntersectionObserver` + `visibilitychange` + `forceContextLoss` cleanup + `prefers-reduced-motion`/`hardwareConcurrency <=4` fallback.
+- [x] **React Compiler** (`builder.md:13`) — `vite.config.ts:1-46` `reactCompilerPreset()` + `@rolldown/plugin-babel`, `src/main.tsx:1-18` `Theme` wrapped by `MotionConfig`.
+- [x] **SEO H** — `Seo.tsx:7-47` native `title/meta`, `public/robots.txt:1-3`, `sitemap.xml:1-13`, `llms.txt:1-29` Markdown links (agentic 100), one `h1` `Hero.tsx:52`, landmarks `nav/main/section aria-labelledby/footer`.
 
-- [ ] `grep -r "My Skills|My Experiences|My Projects|Let's talk|Download Resume|View Certifications|label=\"Resume\"|label=\"Certs\"|label=\"Open\""` returns 0 after fix — only `src/data/*.json` contains those strings.
-- [ ] `grep -r "from.*data/" src/components` returns 0 — only `src/lib/content.ts:3-9` imports JSON (`builder.md:42`).
-- [ ] Edit test: change `profile.json:name`, `skills.json:items[0].name`, `ui.json:sections.skills.heading`, `about.json:blocks[1].text`, `projects.json:items[0].title` → `npm run dev` reflects instantly, no `.tsx` touch.
-- [ ] `src/data/README.md:1-21` updated to list every file/key → visible location table (add `ui.json` row, update skills/experience/projects rows to note heading/subheading/ctaLabel).
+## 3. Remaining Requirements (P1 — docs/hygiene, not CMS-blocking)
 
-## 4. Other planner.md / builder.md Fit (already fixed vs remaining)
+- [ ] **Docs**: `README.md:1-35` still Vite boilerplate (Oxlint config). Replace with project README: `npm install && npm run dev`, `npm run build && vite preview`, CMS editing `src/data/README.md:1-22` table, theme `npx astryx theme build ./src/theme/soft-pop.ts`, benchmarks `BENCHMARKS.md:1-144`, deploy. Keep `browserslist` note.
+- [ ] **Hygiene**: `src/App.css:1` empty — remove or document; unused `src/assets/vite.svg`/`react.svg` — remove.
+- [ ] **SEO sync**: `public/robots.txt:3` `Sitemap: https://rynbsd.vercel.app/sitemap.xml`, `public/sitemap.xml:4-12` `<loc> https://rynbsd.vercel.app/#skills` etc., `seo.json:8` `canonical: https://rynbsd.vercel.app/` — domain is old portfolio; add sync note already in `src/data/README.md:13` but ensure manual update on new deploy. Consider auto-generating `sitemap.xml` from `ui.navItems` + `seo.json`.
+- [ ] **Theme build**: `src/main.tsx:5-6` imports `soft-pop` built `soft-pop.css/js`; ensure `npx astryx theme build` artifact is committed and `vite preview` CSS layer order verified via `vite.config.ts:17-30`.
+- [ ] **Verification re-run** (`builder.md:9`): after docs/hygiene, re-run `vite dev` + Chrome MCP `take_snapshot` (one H1, landmarks, alt from JSON), `performance_start_trace` 60s idle + scroll (60fps, heap flat, WebGL 1→0), `list_console_messages` 0 errors, `resize_page` 375/768/1280/1536, Lighthouse `npx lighthouse` desktop+mobile 3× median → update `BENCHMARKS.md`.
 
-### Fixed since last requirements.md (mark DONE)
-- [x] Astryx primitives: `AppShell variant="wash"` `src/App.tsx:24`, `TopNav` `TopNav.tsx:2` (`AstryxTopNav`/`TopNavItem`), `Section` `Skills.tsx:5`/`Experience.tsx:4`/`About.tsx:4`/`Projects.tsx:6`, `ScrollProgress` `src/components/ScrollProgress.tsx:1-26` `useScroll+useSpring`, `MotionConfig reducedMotion="user"` `src/main.tsx:12`, `useReducedMotion` guards `Hero.tsx:11` `Skills.tsx:14` `Experience.tsx:12` `About.tsx:12` `Projects.tsx:15`, tilt `rotateX/Y` `Projects.tsx:29`, `layoutId="nav-underline"` `TopNav.tsx:40`, `softPopTheme` `--shadow-med` `src/theme/softPopTheme.ts:21` + `src/index.css:28`, `index.html:10` fallback comment.
+## 4. Implementation Order
 
-### Remaining P1 (non-CMS)
-- [ ] Theme `softPopTheme.css/js` build artifact via `npx astryx theme build ./src/theme/soft-pop.ts` per `builder.md:33` — currently `src/main.tsx:5-6` imports `soft-pop` built files; ensure build is committed.
-- [ ] `public/robots.txt:3` / `sitemap.xml:4-12` canonical sync to `seo.json:8` — documented but not auto-generated; keep manual sync note in `README.md`.
-- [ ] `README.md:1-35` still Vite boilerplate — replace with project-specific (install, CMS guide, benchmarks link).
-- [ ] `src/App.css:1` empty + unused `src/assets/vite.svg` — remove or document.
+1. Update docs/hygiene P1 items above (no CMS code changes needed — CMS already complete).
+2. `npm run build` + `vite preview` → full `builder.md:9` verification, refresh `BENCHMARKS.md`.
+3. `git add src/data/ src/types/content.ts src/lib/content.ts src/components/ src/data/README.md requirements.md` + commit — ensure `git diff` clean (no form, no custom primitives beyond 3D).
 
-## 5. Concrete Schema & File Changes (minimal additive)
+## 5. File Map
 
-**`src/types/content.ts` add:**
-```ts
-export const ctaLabelsSchema = z.object({ resume:z.string().default("Download Resume"), certifications:z.string().default("View Certifications"), resumeShort:z.string().default("Resume"), certsShort:z.string().default("Certs") })
-export const contactSchema = z.object({ heading:z.string().default("Let's talk for something special"), blurb:z.string().default("I'm passionate about building, teaching...") })
-// extend profileSchema with ctaLabels?:ctaLabelsSchema, contact?:contactSchema
-export const uiSchema = z.object({
-  navItems: z.array(z.object({ href:z.string(), label:z.string() })),
-  sections: z.object({
-    skills: z.object({ heading:z.string(), subheading:z.string() }),
-    experience: z.object({ heading:z.string() }),
-    projects: z.object({ heading:z.string(), subheading:z.string(), ctaLabel:z.string().default("Open") }),
-  })
-})
-```
-
-**`src/data/ui.json` new:**
-```json
-{
-  "navItems": [
-    { "href": "#hero", "label": "Home" },
-    { "href": "#skills", "label": "Skills" },
-    { "href": "#experience", "label": "Experience" },
-    { "href": "#about", "label": "About" },
-    { "href": "#projects", "label": "Projects" }
-  ],
-  "sections": {
-    "skills": { "heading": "My Skills", "subheading": "Tools I use to ship products end-to-end — frontend, backend, tooling, and creative." },
-    "experience": { "heading": "My Experiences" },
-    "projects": { "heading": "My Projects", "subheading": "Open source and built-from-scratch projects — from landing pages to full-stack clones.", "ctaLabel": "Open" }
-  }
-}
-```
-
-**`src/data/profile.json` add:** `ctaLabels` + `contact` keys (see above).
-
-**Component replacements (line citations):**
-- `Hero.tsx:61` → `label={profile.ctaLabels.resume}` and `Hero.tsx:62` → `profile.ctaLabels.certifications`
-- `TopNav.tsx:34-35` → `profile.ctaLabels.resumeShort` / `certsShort` and `TopNav.tsx:6-12` map over `ui.navItems` instead of const
-- `Skills.tsx:18-19` → `ui.sections.skills.heading/subheading`
-- `Experience.tsx:16` → `ui.sections.experience.heading`
-- `Projects.tsx:19-20` → `ui.sections.projects.heading/subheading`, `Projects.tsx:41` → `project.ctaLabel ?? ui.sections.projects.ctaLabel`
-- `Footer.tsx:10-11` → `profile.contact.heading` / `blurb`
-
-## 6. Verification (builder.md 9)
-
-1. `npm run build` — Zod throws exact field if JSON invalid.
-2. `vite dev` + Chrome MCP `take_snapshot` per section — confirm one `h1`, landmarks, alt from JSON, keyboard reachability.
-3. Edit each `src/data/*.json` value, reload — UI updates without `.tsx` change (CMS proof).
-4. `performance_start_trace` 60s idle hero + scroll — 60fps, heap flat, WebGL 1→0 on `IntersectionObserver` hidden.
-5. Lighthouse desktop+mobile — targets `PLAN.md` G (Perf≥90, A11y≥95, BP≥95, SEO100, JS ≤250kB gzip).
-
-## 7. Implementation Order
-
-1. Add `ui.json` + extend `types/content.ts` + `lib/content.ts` export `ui`.
-2. Extend `profile.json` CTA/contact.
-3. Replace 8 hardcoded sites (§2.1-2.7) with data reads.
-4. Update `src/data/README.md` table.
-5. Run CMS edit test + benchmarks, commit `git add src/data/ src/types/ src/lib/ src/components/`.
+- CMS: `src/data/profile.json:1-29`, `ui.json:1-23`, `skills.json:1-16`, `experience.json:1-18`, `projects.json:1-20`, `about.json:1-8`, `seo.json:1-20`, `theme.json:1-8`, `src/types/content.ts:1-145`, `src/lib/content.ts:1-23`, `src/data/README.md:1-22`
+- Components: `src/App.tsx:21-43`, `Hero.tsx:50-91`, `Skills.tsx:18-19`, `Experience.tsx:16`, `Projects.tsx:19-41`, `TopNav.tsx:19,26-27`, `Footer.tsx:10-12`
+- Theme/SEO/Motion/3D: `softPopTheme.ts:6-52`, `index.html:10-12`, `Seo.tsx:7-47`, `ScrollProgress.tsx:1-26`, `GlowBubbles/*`
 
 ---
-> All paths cite `file:line`. After this, `src/data/` is the sole content authority — fulfills `planner.md:49` + `builder.md:9` "100% driven from src/data/*.json".
+> After this update, `src/data/` is the sole content authority — fulfills `planner.md:49` "single source of truth" + `builder.md:9` "100% driven from src/data/*.json". All visible strings editable without touching `.tsx`.
