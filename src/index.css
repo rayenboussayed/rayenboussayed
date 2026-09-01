@@ -1,0 +1,41 @@
+@import '@astryxdesign/core/reset.css';
+
+/* Soft Pop Neobrutalist overrides — thick borders, hard offset shadows, blobby radius */
+:root {
+  --soft-pop-border: 3px;
+  --soft-pop-shadow: 6px 6px 0px var(--color-border);
+  --soft-pop-shadow-pill: 4px 4px 0px var(--color-border);
+  --soft-pop-radius-card: 20px;
+  --soft-pop-radius-pill: 9999px;
+}
+
+/* Global layer order already injected via vite.config, keep cascade safe */
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 72px;
+}
+
+body {
+  background: var(--color-background-body);
+  color: var(--color-text-primary);
+  font-family: var(--font-family-body, system-ui, sans-serif);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Neobrutalist card helper — use via className on Astryx Card */
+.soft-pop-card {
+  border: 3px solid var(--color-border) !important;
+  box-shadow: var(--shadow-med, var(--soft-pop-shadow)) !important;
+  border-radius: var(--soft-pop-radius-card) !important;
+}
+
+.soft-pop-pill {
+  border-radius: var(--soft-pop-radius-pill) !important;
+  box-shadow: var(--soft-pop-shadow-pill) !important;
+}
+
+/* Sticky nav offset hard shadow */
+.soft-pop-nav {
+  border-bottom: 3px solid var(--color-border);
+  box-shadow: 0 4px 0 var(--color-border);
+}

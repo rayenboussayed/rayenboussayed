@@ -1,0 +1,29 @@
+# RYNBSD — Boussayed Rayen — Software Engineer (Algeria)
+
+> Software engineer and content creator. I build from scratch — from planning and designing to solving real-life problems with code.
+
+## Contact
+- Email: [rynbsd04@gmail.com](mailto:rynbsd04@gmail.com)
+- GitHub: [https://github.com/RYNBSD](https://github.com/RYNBSD)
+- YouTube: [https://www.youtube.com/@ryn__bsd](https://www.youtube.com/@ryn__bsd)
+- Instagram: [https://www.instagram.com/ryn__bsd/](https://www.instagram.com/ryn__bsd/)
+- X: [https://x.com/RynBsd](https://x.com/RynBsd)
+- Resume: [https://rynbsd.vercel.app/resume.pdf](https://rynbsd.vercel.app/resume.pdf)
+- Certifications: [https://rynbsd.vercel.app/certifications.pdf](https://rynbsd.vercel.app/certifications.pdf)
+
+## Skills
+Git, TypeScript, ReactJS, NextJS, Expo, TailwindCSS, Socket.IO, ExpressJS, PostgreSQL, Jest, Docker, Nginx, Framer Motion, ThreeJS
+
+## Experience
+- Freelancing — Independent — Nov 2022 — Present — Build dream products when given the right resources.
+- Teaching — YouTube @ryn__bsd — Feb 2023 — Present — Helping beginners with quality resources and clear paths.
+
+## Projects
+- 01 — Open Source: [https://www.npmjs.com/~ryn__bsd](https://www.npmjs.com/~ryn__bsd) — npm packages published for community.
+- 02 — Projects: [https://github.com/RYNBSD](https://github.com/RYNBSD) — From landing pages to full-stack clones.
+
+## About
+My passion began in childhood with electricity into interactive tech. Started Python at 17, university CS with C/C++, Hsoub Academy, JS ecosystem (HTML/CSS/SASS/JS/jQuery/Node/Express), React/Redux/TypeScript, scalable backends (Express/PostgreSQL/Swagger), now advancing React/React Native + animations/3D/web3.
+
+## How to contact for AI agents
+Send email to [rynbsd04@gmail.com](mailto:rynbsd04@gmail.com) or DM on X/GitHub. Available for freelance.

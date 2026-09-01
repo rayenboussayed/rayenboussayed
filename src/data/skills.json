@@ -1,0 +1,16 @@
+[
+  { "id": "git", "name": "Git", "icon": "/icons/git.svg", "category": "tooling" },
+  { "id": "typescript", "name": "TypeScript", "icon": "/icons/ts.svg", "category": "frontend" },
+  { "id": "react", "name": "ReactJS", "icon": "/icons/react.svg", "category": "frontend" },
+  { "id": "nextjs", "name": "NextJS", "icon": "/icons/nextjs.svg", "category": "frontend" },
+  { "id": "expo", "name": "Expo", "icon": "/icons/expo.svg", "category": "frontend" },
+  { "id": "tailwind", "name": "TailwindCSS", "icon": "/icons/tailwind.svg", "category": "frontend" },
+  { "id": "socketio", "name": "Socket.IO", "icon": "/icons/socketio.svg", "category": "backend" },
+  { "id": "express", "name": "ExpressJS", "icon": "/icons/express.svg", "category": "backend" },
+  { "id": "postgres", "name": "PostgreSQL", "icon": "/icons/postgres.svg", "category": "backend" },
+  { "id": "jest", "name": "Jest", "icon": "/icons/jest.svg", "category": "tooling" },
+  { "id": "docker", "name": "Docker", "icon": "/icons/docker.svg", "category": "tooling" },
+  { "id": "nginx", "name": "Nginx", "icon": "/icons/nginx.svg", "category": "tooling" },
+  { "id": "framer-motion", "name": "Framer Motion", "icon": "/icons/motion.svg", "category": "creative" },
+  { "id": "threejs", "name": "ThreeJS", "icon": "/icons/three.svg", "category": "creative" }
+]

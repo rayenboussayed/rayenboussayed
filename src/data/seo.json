@@ -1,0 +1,20 @@
+{
+  "default": {
+    "route": "/",
+    "title": "RYNBSD — Boussayed Rayen | Software Engineer",
+    "description": "Boussayed Rayen (RYNBSD) — Software Engineer based in Algeria. I build full-stack products from scratch: React, Next.js, Node, PostgreSQL, Docker, and 3D web experiences.",
+    "keywords": ["Boussayed Rayen", "RYNBSD", "Software Engineer", "Algeria", "React", "TypeScript", "Full Stack", "Three.js"],
+    "ogImage": "/og.png",
+    "canonical": "https://rynbsd.vercel.app/"
+  },
+  "entries": [
+    {
+      "route": "/",
+      "title": "RYNBSD — Boussayed Rayen | Software Engineer",
+      "description": "Boussayed Rayen (RYNBSD) — Software Engineer based in Algeria. I build full-stack products from scratch: React, Next.js, Node, PostgreSQL, Docker, and 3D web experiences.",
+      "keywords": ["Boussayed Rayen", "RYNBSD", "Software Engineer", "Algeria", "React", "TypeScript"],
+      "ogImage": "/og.png",
+      "canonical": "https://rynbsd.vercel.app/"
+    }
+  ]
+}

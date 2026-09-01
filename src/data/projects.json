@@ -1,0 +1,20 @@
+[
+  {
+    "id": "open-source",
+    "title": "01 — Open Source",
+    "description": "As a JavaScript developer I don't want to be just a consumer of npm. After solving many problems locally, I publish and share high-quality solutions with the community.",
+    "url": "https://www.npmjs.com/~ryn__bsd",
+    "tags": ["npm", "JavaScript", "Open Source"],
+    "image": "/projects/open-source.webp",
+    "imageAlt": "Open source — npm packages published by RYNBSD"
+  },
+  {
+    "id": "projects",
+    "title": "02 — Projects",
+    "description": "From small landing pages to e-commerce sites and full social media clones, all built from scratch. Explore and test these projects in my repositories.",
+    "url": "https://github.com/RYNBSD",
+    "tags": ["Full Stack", "React", "Node"],
+    "image": "/projects/github.webp",
+    "imageAlt": "Projects — GitHub repositories by RYNBSD spanning landing pages to full-stack clones"
+  }
+]

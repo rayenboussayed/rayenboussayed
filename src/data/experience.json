@@ -1,0 +1,18 @@
+[
+  {
+    "id": "freelancing",
+    "role": "Freelancing",
+    "org": "Independent",
+    "period": "Nov 2022 — Present",
+    "description": "Challenging at first — convincing clients and meeting expectations. Now I confidently build dream products when given the right resources, exceeding expectations across many shipped projects.",
+    "icon": "/icons/upwork.svg"
+  },
+  {
+    "id": "teaching",
+    "role": "Teaching",
+    "org": "YouTube @ryn__bsd",
+    "period": "Feb 2023 — Present",
+    "description": "Helping beginners with quality resources, simple explanations, and a clear path from start to finish. In return, I hone communication, simplify complex problems, and keep discovering new things.",
+    "icon": "/icons/youtube.svg"
+  }
+]

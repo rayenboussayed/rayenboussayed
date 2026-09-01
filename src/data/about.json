@@ -1,0 +1,8 @@
+{
+  "blocks": [
+    { "type": "h2", "text": "About Me" },
+    { "type": "p", "text": "My passion for computer science began in childhood, driven by fascination with how electricity becomes interactive technology and a desire to become a game developer. I started programming with Python at 17, just after high school, mastering basics and OOP while honing problem-solving." },
+    { "type": "p", "text": "In university I chose Computer Science, learning C and teaching myself C++ in the first year while focusing on problem-solving. In my second year I transferred to Hsoub Academy, where a professor recommended JavaScript. Despite its syntax, I persevered into web development: HTML, CSS, SASS, JS, jQuery on the client and Node.js + Express on the server." },
+    { "type": "p", "text": "I then learned ReactJS and Redux, practiced extensively, and moved to TypeScript for higher-quality apps. While frontend intrigued me, backend drew me deeper — dedicating a year to master it with my Python, C, and C++ background. By my third university year I was designing scalable backends with ExpressJS, TypeScript, PostgreSQL, and SwaggerUI. Today I'm leveling up frontend with React and React Native, exploring animations, 3D, and web3." }
+  ]
+}

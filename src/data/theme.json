@@ -1,0 +1,8 @@
+{
+  "baseTheme": "y2k",
+  "accent": ["#7B61FF", "#9B85FF"],
+  "neutralStyle": "cool",
+  "bubblePalette": ["#FF6B9D", "#7B61FF", "#4FD1C5", "#FBBF24"],
+  "borderWidth": "3px",
+  "radius": { "base": 16, "multiplier": 1.4 }
+}

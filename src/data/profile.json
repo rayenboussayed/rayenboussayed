@@ -1,0 +1,19 @@
+{
+  "name": "Boussayed Rayen",
+  "displayName": "RYNBSD",
+  "role": "Software Engineer",
+  "tagline": "Software engineer and content creator. I build from scratch — from planning and designing to solving real-life problems with code. Same for content, from idea to sharing.",
+  "location": "Algeria",
+  "avatar": "/avatar.webp",
+  "avatarAlt": "Portrait of Boussayed Rayen, software engineer from Algeria",
+  "email": "rynbsd04@gmail.com",
+  "resumeUrl": "/resume.pdf",
+  "certificationsUrl": "/certifications.pdf",
+  "socials": [
+    { "id": "github", "label": "GitHub", "href": "https://github.com/RYNBSD", "icon": "github" },
+    { "id": "youtube", "label": "YouTube", "href": "https://www.youtube.com/@ryn__bsd", "icon": "youtube" },
+    { "id": "instagram", "label": "Instagram", "href": "https://www.instagram.com/ryn__bsd/", "icon": "instagram" },
+    { "id": "x", "label": "X", "href": "https://x.com/RynBsd", "icon": "x" }
+  ],
+  "availability": "Available for freelance — let's build your dream product"
+}
