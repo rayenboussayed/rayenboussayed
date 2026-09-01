@@ -15,5 +15,15 @@
     { "id": "instagram", "label": "Instagram", "href": "https://www.instagram.com/ryn__bsd/", "icon": "instagram" },
     { "id": "x", "label": "X", "href": "https://x.com/RynBsd", "icon": "x" }
   ],
-  "availability": "Available for freelance — let's build your dream product"
+  "availability": "Available for freelance — let's build your dream product",
+  "ctaLabels": {
+    "resume": "Download Resume",
+    "certifications": "View Certifications",
+    "resumeShort": "Resume",
+    "certsShort": "Certs"
+  },
+  "contact": {
+    "heading": "Let's talk for something special",
+    "blurb": "I'm passionate about building, teaching, and guiding in mobile, web, and server development. Let's collaborate to turn your ideas into reality."
+  }
 }

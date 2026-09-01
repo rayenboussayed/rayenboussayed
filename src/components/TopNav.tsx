@@ -1,15 +1,7 @@
 import { Button } from '@astryxdesign/core/Button'
 import { TopNav as AstryxTopNav, TopNavHeading, TopNavItem } from '@astryxdesign/core/TopNav'
 import { motion } from 'motion/react'
-import { profile } from '../lib/content'
-
-const links = [
-  { href: '#hero', label: 'Home' },
-  { href: '#skills', label: 'Skills' },
-  { href: '#experience', label: 'Experience' },
-  { href: '#about', label: 'About' },
-  { href: '#projects', label: 'Projects' },
-] as const
+import { profile, ui } from '../lib/content'
 
 /**
  * Sticky top navigation — uses Astryx primitives (TopNav, TopNavItem) per builder.md:7.
@@ -24,15 +16,15 @@ export function TopNav() {
         heading={<TopNavHeading heading={profile.displayName} headingHref="#hero" />}
         startContent={
           <>
-            {links.map((l) => (
+            {ui.navItems.map((l) => (
               <TopNavItem key={l.href} label={l.label} href={l.href} />
             ))}
           </>
         }
         endContent={
           <>
-            <Button label="Resume" variant="primary" size="sm" href={profile.resumeUrl} target="_blank" rel="noreferrer" />
-            <Button label="Certs" variant="secondary" size="sm" href={profile.certificationsUrl} target="_blank" rel="noreferrer" />
+            <Button label={profile.ctaLabels.resumeShort} variant="primary" size="sm" href={profile.resumeUrl} target="_blank" rel="noreferrer" />
+            <Button label={profile.ctaLabels.certsShort} variant="secondary" size="sm" href={profile.certificationsUrl} target="_blank" rel="noreferrer" />
           </>
         }
       />

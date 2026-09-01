@@ -4,7 +4,7 @@ import { Text } from '@astryxdesign/core/Text'
 import { Badge } from '@astryxdesign/core/Badge'
 import { Section } from '@astryxdesign/core/Section'
 import { motion, useReducedMotion } from 'motion/react'
-import { skills } from '../lib/content'
+import { skills, ui } from '../lib/content'
 
 /**
  * Skills grid — 14 cards, motion hover/tap + scroll reveal.
@@ -15,8 +15,8 @@ export function Skills() {
   return (
     // @ts-ignore — Section supports id/aria via rest props (BaseProps extends HTMLAttributes)
     <Section role="region" id="skills" aria-labelledby="skills-heading" padding={6} variant="section">
-      <Heading level={2} id="skills-heading" style={{ fontWeight: 800 }}>My Skills</Heading>
-      <Text color="secondary" style={{ marginTop: 8 }}>Tools I use to ship products end-to-end — frontend, backend, tooling, and creative.</Text>
+      <Heading level={2} id="skills-heading" style={{ fontWeight: 800 }}>{ui.sections.skills.heading}</Heading>
+      <Text color="secondary" style={{ marginTop: 8 }}>{ui.sections.skills.subheading}</Text>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 16, marginTop: 24 }}>
         {skills.map((s, i) => (

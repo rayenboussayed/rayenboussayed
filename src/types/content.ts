@@ -9,6 +9,24 @@ export const socialSchema = z.object({
 })
 export type Social = z.infer<typeof socialSchema>
 
+/** CTA labels for Hero/TopNav — defaults keep existing copy */
+export const ctaLabelsSchema = z.object({
+  resume: z.string().default('Download Resume'),
+  certifications: z.string().default('View Certifications'),
+  resumeShort: z.string().default('Resume'),
+  certsShort: z.string().default('Certs'),
+})
+export type CtaLabels = z.infer<typeof ctaLabelsSchema>
+
+/** Footer contact copy */
+export const contactSchema = z.object({
+  heading: z.string().default("Let's talk for something special"),
+  blurb: z.string().default(
+    "I'm passionate about building, teaching, and guiding in mobile, web, and server development. Let's collaborate to turn your ideas into reality."
+  ),
+})
+export type Contact = z.infer<typeof contactSchema>
+
 /** Profile — single source for Hero + Footer + SEO */
 export const profileSchema = z.object({
   name: z.string(),
@@ -23,6 +41,17 @@ export const profileSchema = z.object({
   certificationsUrl: z.string(),
   socials: z.array(socialSchema),
   availability: z.string().optional(),
+  ctaLabels: ctaLabelsSchema.default({
+    resume: 'Download Resume',
+    certifications: 'View Certifications',
+    resumeShort: 'Resume',
+    certsShort: 'Certs',
+  }),
+  contact: contactSchema.default({
+    heading: "Let's talk for something special",
+    blurb:
+      "I'm passionate about building, teaching, and guiding in mobile, web, and server development. Let's collaborate to turn your ideas into reality.",
+  }),
 })
 export type Profile = z.infer<typeof profileSchema>
 
@@ -57,9 +86,25 @@ export const projectSchema = z.object({
   tags: z.array(z.string()),
   image: z.string(),
   imageAlt: z.string(),
+  ctaLabel: z.string().optional(),
 })
 export type Project = z.infer<typeof projectSchema>
 export const projectsSchema = z.array(projectSchema)
+
+/** UI — nav and section headings (CMS for IA chrome) */
+export const uiSchema = z.object({
+  navItems: z.array(z.object({ href: z.string(), label: z.string() })),
+  sections: z.object({
+    skills: z.object({ heading: z.string(), subheading: z.string() }),
+    experience: z.object({ heading: z.string() }),
+    projects: z.object({
+      heading: z.string(),
+      subheading: z.string(),
+      ctaLabel: z.string().default('Open'),
+    }),
+  }),
+})
+export type Ui = z.infer<typeof uiSchema>
 
 /** About — rich blocks */
 export const aboutBlockSchema = z.object({

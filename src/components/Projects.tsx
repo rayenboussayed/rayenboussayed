@@ -5,7 +5,7 @@ import { Badge } from '@astryxdesign/core/Badge'
 import { Button } from '@astryxdesign/core/Button'
 import { Section } from '@astryxdesign/core/Section'
 import { motion, useReducedMotion } from 'motion/react'
-import { projects } from '../lib/content'
+import { projects, ui } from '../lib/content'
 
 /**
  * Projects — cards with tags (Badge) and CTA, hover tilt + scroll reveal.
@@ -16,8 +16,8 @@ export function Projects() {
   return (
     // @ts-ignore — id/aria
     <Section role="region" id="projects" aria-labelledby="projects-heading" padding={6} variant="section">
-      <Heading level={2} id="projects-heading" style={{ fontWeight: 800 }}>My Projects</Heading>
-      <Text color="secondary" style={{ marginTop: 8 }}>Open source and built-from-scratch projects — from landing pages to full-stack clones.</Text>
+      <Heading level={2} id="projects-heading" style={{ fontWeight: 800 }}>{ui.sections.projects.heading}</Heading>
+      <Text color="secondary" style={{ marginTop: 8 }}>{ui.sections.projects.subheading}</Text>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 20, marginTop: 24 }}>
         {projects.map((p, i) => (
           <motion.div
@@ -38,7 +38,7 @@ export function Projects() {
                   <Badge key={t} label={t} variant="neutral" />
                 ))}
               </div>
-              <Button label="Open" variant="primary" href={p.url} target="_blank" rel="noreferrer" />
+              <Button label={p.ctaLabel ?? ui.sections.projects.ctaLabel} variant="primary" href={p.url} target="_blank" rel="noreferrer" />
             </Card>
           </motion.div>
         ))}

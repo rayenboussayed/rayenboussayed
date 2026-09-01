@@ -1,4 +1,4 @@
-import { aboutSchema, experienceSchema, profileSchema, projectsSchema, seoSchema, skillsSchema, themeConfigSchema } from '../types/content'
+import { aboutSchema, experienceSchema, profileSchema, projectsSchema, seoSchema, skillsSchema, themeConfigSchema, uiSchema } from '../types/content'
 
 import aboutRaw from '../data/about.json'
 import experienceRaw from '../data/experience.json'
@@ -7,6 +7,7 @@ import projectsRaw from '../data/projects.json'
 import seoRaw from '../data/seo.json'
 import skillsRaw from '../data/skills.json'
 import themeRaw from '../data/theme.json'
+import uiRaw from '../data/ui.json'
 
 /**
  * Validated, typed content — single source of truth.
@@ -19,3 +20,4 @@ export const projects = projectsSchema.parse(projectsRaw)
 export const about = aboutSchema.parse(aboutRaw)
 export const seo = seoSchema.parse(seoRaw)
 export const themeConfig = themeConfigSchema.parse(themeRaw)
+export const ui = uiSchema.parse(uiRaw)

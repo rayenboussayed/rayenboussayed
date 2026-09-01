@@ -4,10 +4,11 @@ All visible copy is in `src/data/*.json`. Edit JSON, save, refresh — no `.tsx`
 
 | File | What you edit | Where it appears |
 |---|---|---|---|
-| `profile.json` | `name`, `role`, `tagline`, `location`, `avatar`, `avatarAlt`, `email`, `resumeUrl`, `certificationsUrl`, `socials[]` | Hero (H1, tagline, CTAs, icons) + Footer (email/socials) + SEO JSON-LD |
-| `skills.json` | Array of `{ name, icon, iconAlt?, category }` | Skills grid. `icon` = `/icons/*.svg` (or webp) path, `iconAlt` defaults to `name` if omitted. Add/remove entries to change grid. |
-| `experience.json` | Array of `{ role, org, period, description, icon, iconAlt? }` | Experience timeline. `iconAlt` defaults to `role`. Order = display order |
-| `projects.json` | Array of `{ title, description, url, tags[], image, imageAlt }` | Projects cards. `tags` render as pills, `url` = CTA link, `imageAlt` required for a11y. Images go in `public/projects/` (e.g. `/projects/open-source.webp` 640×360, `/og.png` 1200×630 for OG). |
+| `profile.json` | `name`, `role`, `tagline`, `location`, `avatar`, `avatarAlt`, `email`, `resumeUrl`, `certificationsUrl`, `socials[]`, `ctaLabels{resume,certifications,resumeShort,certsShort}`, `contact{heading,blurb}` | Hero (H1, tagline, CTAs via `ctaLabels.resume/certifications`) + Footer (`contact.heading/blurb` + email/socials) + TopNav short CTAs (`resumeShort/certsShort`) + SEO JSON-LD |
+| `ui.json` | `{ navItems[{href,label}], sections{ skills{heading,subheading}, experience{heading}, projects{heading,subheading,ctaLabel} } }` | TopNav (`navItems`) + section headings/subheadings + project CTA fallback. Edit labels without touching components. |
+| `skills.json` | Array of `{ name, icon, iconAlt?, category }` | Skills grid. `icon` = `/icons/*.svg` (or webp) path, `iconAlt` defaults to `name` if omitted. Add/remove entries to change grid. Headings are in `ui.json`. |
+| `experience.json` | Array of `{ role, org, period, description, icon, iconAlt? }` | Experience timeline. `iconAlt` defaults to `role`. Order = display order. Heading in `ui.json`. |
+| `projects.json` | Array of `{ title, description, url, tags[], image, imageAlt, ctaLabel? }` | Projects cards. `ctaLabel` per-card overrides `ui.json:sections.projects.ctaLabel` (default "Open"). `tags` pills, `url` CTA link, `imageAlt` required. Headings in `ui.json`. |
 | `about.json` | `{ blocks: [{ type: "h2" | "p", text }] }` | About section. Add `p` blocks for paragraphs |
 | `seo.json` | `{ default: { title, description, keywords[], ogImage, canonical } }` | `<title>`, `<meta>`, OG/Twitter, canonical link. **Sync `canonical` with `public/robots.txt` Sitemap line and `public/sitemap.xml` `<loc>` — fallback `https://rynbsd.vercel.app/` until new domain.** |
 | `theme.json` | `{ baseTheme, accent, bubblePalette, borderWidth, radius }` | Theme palette + bubble shader colors (bubblePalette drives `GlowBubbles` uniforms). `borderWidth` is string like `"3px"`. |

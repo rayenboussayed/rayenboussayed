@@ -3,7 +3,7 @@ import { Heading } from '@astryxdesign/core/Heading'
 import { Text } from '@astryxdesign/core/Text'
 import { Section } from '@astryxdesign/core/Section'
 import { motion, useReducedMotion } from 'motion/react'
-import { experience } from '../lib/content'
+import { experience, ui } from '../lib/content'
 
 /**
  * Experience timeline — scroll reveals staggered.
@@ -13,7 +13,7 @@ export function Experience() {
   return (
     // @ts-ignore — id/aria pass-through
     <Section role="region" id="experience" aria-labelledby="experience-heading" padding={6} variant="section">
-      <Heading level={2} id="experience-heading" style={{ fontWeight: 800 }}>My Experiences</Heading>
+      <Heading level={2} id="experience-heading" style={{ fontWeight: 800 }}>{ui.sections.experience.heading}</Heading>
       <div style={{ display: 'grid', gap: 16, marginTop: 24 }}>
         {experience.map((item, i) => (
           <motion.div

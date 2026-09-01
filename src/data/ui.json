@@ -1,0 +1,23 @@
+{
+  "navItems": [
+    { "href": "#hero", "label": "Home" },
+    { "href": "#skills", "label": "Skills" },
+    { "href": "#experience", "label": "Experience" },
+    { "href": "#about", "label": "About" },
+    { "href": "#projects", "label": "Projects" }
+  ],
+  "sections": {
+    "skills": {
+      "heading": "My Skills",
+      "subheading": "Tools I use to ship products end-to-end — frontend, backend, tooling, and creative."
+    },
+    "experience": {
+      "heading": "My Experiences"
+    },
+    "projects": {
+      "heading": "My Projects",
+      "subheading": "Open source and built-from-scratch projects — from landing pages to full-stack clones.",
+      "ctaLabel": "Open"
+    }
+  }
+}

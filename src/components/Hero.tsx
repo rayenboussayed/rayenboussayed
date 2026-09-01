@@ -58,8 +58,8 @@ export function Hero() {
             {profile.tagline}
           </motion.p>
           <motion.div variants={item as never} style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-            <Button label="Download Resume" variant="primary" href={profile.resumeUrl} target="_blank" rel="noreferrer" />
-            <Button label="View Certifications" variant="secondary" href={profile.certificationsUrl} target="_blank" rel="noreferrer" />
+            <Button label={profile.ctaLabels.resume} variant="primary" href={profile.resumeUrl} target="_blank" rel="noreferrer" />
+            <Button label={profile.ctaLabels.certifications} variant="secondary" href={profile.certificationsUrl} target="_blank" rel="noreferrer" />
           </motion.div>
           <motion.div variants={item as never} style={{ display: 'flex', gap: 12, marginTop: 20, flexWrap: 'wrap' }}>
             {profile.socials.map((s) => (
