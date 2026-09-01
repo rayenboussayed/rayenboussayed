@@ -58,11 +58,11 @@ export function GlowCanvas({ visible }: { visible: boolean }) {
 export function GlowBubblesWrapper() {
   const ref = useRef<HTMLDivElement>(null)
   const [visible, setVisible] = useState(true)
+  // Only respect explicit user preference; do not guess via hardwareConcurrency
+  // (headless CI and many real devices report ≤4, which would incorrectly disable 3D)
   const [canRender] = useState(() => {
     if (typeof window === 'undefined') return true
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false
-    const hw = (navigator as unknown as { hardwareConcurrency?: number }).hardwareConcurrency
-    if (typeof hw === 'number' && hw <= 4) return false
     return true
   })
 

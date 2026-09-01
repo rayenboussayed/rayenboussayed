@@ -27,7 +27,8 @@ export function Projects() {
             initial={reduce ? false : { opacity: 0, y: 24 }}
             whileInView={reduce ? undefined : { opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.2 }}
-            transition={{ duration: 0.6, delay: i * 0.08, ease: 'easeOut' }}
+            // No stagger for 2-item list — prevents second card mid-fade in screenshots/fast scroll
+            transition={{ duration: 0.6, delay: projects.length < 3 ? 0 : i * 0.08, ease: 'easeOut' }}
             whileHover={reduce ? undefined : { y: -6, rotateX: 2, rotateY: -2 } as never}
             style={{ display: 'flex', transformPerspective: 800 } as never}
           >

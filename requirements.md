@@ -1,109 +1,65 @@
-# REQUIREMENTS — Fix Pass (audit against planner.md / builder.md)
+# REQUIREMENTS v2 — Remaining Fixes (audit against planner.md / builder.md)
 
-## How this audit was done
+## Method note (same caveat as v1)
 
-I do **not** have a live Chrome MCP / browser tool available in this conversation, so I could not personally re-run `chrome-devtools_take_screenshot` or Lighthouse against a running `vite preview`. Instead I did a full static audit of `00-PROJECT-MERGED.md` (every source file, 2423 lines) cross-referenced against the 8 screenshots and `README.md`'s own verification claims. That was enough to find several **concrete, code-verifiable bugs** that fully explain what you're seeing (broken images, frozen/non-3D bubbles, sections that never reveal). Everything below is traceable to an exact file/line. Section 9 tells the builder agent exactly how to re-verify with **real** Chrome MCP + Lighthouse once these are fixed — the `BENCHMARKS.md`/README claims of "Lighthouse 100/100/100" and "shaders PASS" predate these bugs and cannot be trusted as-is.
+I still do not have a live Chrome MCP / Lighthouse tool in this session, so this is a static code + screenshot audit of `BUNDLE.md` (commit `be88a47`, generated 2026-09-02) against the new screenshots. That said, the code changes are enough to confirm what's genuinely fixed and to pinpoint, with line-level evidence, what's still broken and why — the "still broken" items below are not cosmetic guesses, they're traced to specific code.
 
----
+## ✅ Confirmed fixed since v1 (verify these hold, don't regress them)
 
-## 1. CRITICAL — broken theme import (this should not even build cleanly)
+1. **Theme import** — `main.tsx` now correctly imports `./theme/softPopTheme` and `./theme/soft-pop.css` (matching real files). Fixed.
+2. **Missing assets** — all icon/image/avatar paths now resolve (Git, TypeScript, ReactJS, NextJS, Expo, TailwindCSS, Socket.IO, ExpressJS, PostgreSQL, Jest, Docker, Nginx, Framer Motion, ThreeJS icons; Upwork/YouTube experience icons; project images) — confirmed visually in `03-skills.png`, `04-experience.png`, `06-projects.png`. A `scripts/check-assets.mjs` was also added and wired as `prebuild`, which will catch this class of regression automatically going forward. Good — matches the requirement from v1 §4/§8.
+3. **Scroll-reveal robustness** — `Skills.tsx`, `Experience.tsx`, `About.tsx`, `Projects.tsx` all switched from `{ once: false, amount: 0.25, margin: '-10% ...' }` to `{ once: true, amount: 0.2 }`. This is the correct, robust pattern (matches https://motion.dev/docs/react-scroll-animations) and fixes the "vanishes again on scroll-up" problem from v1 §5.
+4. **Bubble shader/lighting tuning** — `uGlow` reduced (0.9→0.4 base, smaller sine amplitude), fresnel exponent/multiplier reduced (2.2×1.6 → 2.0×0.9), rim now blended (`base * (0.88+diffuse) + rim*0.55 + ...`) instead of additive white wash, and bubble positions spread wider (`x` up to ±3.0, `z` −0.5…−1.5 for real depth) with slightly smaller scales. This is the right fix for the "one white blob" problem — **but see open issue #1 below, this fix currently cannot be observed at all.**
+5. **`frameloop="demand"` → `"always"`** — this was the fix for the frozen-canvas bug (v1 §2) and is applied. Correct call given the canvas already fully unmounts on `!visible`.
 
-`src/main.tsx` does:
-```ts
-import { softPopTheme } from './theme/soft-pop'
-import './theme/soft-pop.css'
-```
-But the actual file in the project is `src/theme/softPopTheme.ts` (camelCase, `.ts`, no matching `.css` file exists anywhere in the bundle at all).
+## 🔴 Open issue #1 (CRITICAL) — the 3D canvas is still not what's rendering in the screenshots
 
-**Fix:**
-- Rename the import to match the real file: `import { softPopTheme } from './theme/softPopTheme'`.
-- Either delete the `import './theme/soft-pop.css'` line (StyleX + theme CSS packages already provide the styling per `src/index.css`), or, if a hand-written override stylesheet was intended, create `src/theme/soft-pop.css` and actually populate it — don't leave a dangling import.
-- Confirm `npm run build` (`tsc -b && vite build`) completes with zero module-resolution errors before doing anything else. This is a blocking bug — nothing else in this file matters if the build doesn't compile.
+`02-hero.png` and `08-fullpage.png` still show soft, blurry, rounded-blob shapes with no readable sphere silhouette, no visible waving, and no directional light/shading falloff — i.e., **the exact visual signature of the CSS fallback**, not the shader-driven WebGL canvas:
 
-## 2. CRITICAL — 3D bubbles are frozen (root cause of "no waving effect")
-
-`src/components/GlowBubbles/CanvasWrapper.tsx`:
 ```tsx
-<Canvas dpr={[1, 2]} frameloop="demand" ... >
+// GlowBubblesWrapper, when canRender === false:
+<div ... style={{
+  background: 'radial-gradient(40% 40% at 20% 30%, #FF6B9D55 ... ), radial-gradient(...), radial-gradient(...)',
+  filter: 'blur(20px)',
+}} />
 ```
-Per React Three Fiber's rendering model, `frameloop="demand"` means the canvas renders **once** and then never renders again unless something explicitly calls `invalidate()`. Nothing in `CanvasWrapper.tsx` or `Bubble.tsx` ever calls `invalidate()` — `useFrame` in `Bubble.tsx` only fires *during* a render that already happened, it does not request new ones under `"demand"`. The result: `uTime` is set once at t≈0, the sphere is drawn with `w1=w2=w3≈0`, `Float`'s internal animation never advances, `uGlow`'s sine pulse never advances, and the fragment shader's color drift never advances. This is **exactly** "no waving effect, no shader animation" — the shader code itself (vertex displacement + Fresnel glow + color drift in `shaders.ts`) is written correctly; it just never gets a second frame to prove it.
-
-**Fix (pick one):**
-- **Simplest, recommended:** change `frameloop="demand"` to `frameloop="always"`. The perf-saving "pause when offscreen" goal from `PLAN.md`/`builder.md` §7 is already achieved a different way — `GlowBubblesWrapper` fully unmounts `<GlowCanvas>` (`if (!visible) return null`) via `IntersectionObserver` and `visibilitychange`, which stops the render loop and frees the GPU completely when not needed. `frameloop="demand"` was redundant with that and is what broke the animation.
-- **Alternative, if you want to keep "demand" for some reason:** add a small component inside `<Canvas>` that calls `useThree().invalidate()` on every `useFrame` tick while mounted, driving continuous re-renders manually.
-- After fixing, verify with Chrome MCP (see §9) that the canvas is actually producing a new frame every ~16ms while the hero is in view (Performance panel should show a steady stream of WebGL draw calls, not one draw call followed by silence).
-
-## 3. HIGH — bubbles read as one flat white blob, not distinct 3D spheres
-
-Even once frame 2 exists, two compounding issues will keep this from looking like "3D glowing bubbles" and instead look like the flat cloud in `02-hero.png`/`08-fullpage.png`:
-
-- **Over-tight packing:** 6 spheres with `scale` 1.05–1.7 are placed within `x ∈ [-2.35, 2.35]`, `y ∈ [-0.85, 1.05]`, `z ∈ [-0.6, -0.2]` in front of a camera at `z=5, fov=45`. At that scale/spread they overlap each other heavily from the camera's viewpoint, so distinct sphere silhouettes are not readable — they visually merge.
-- **Glow overpowers shading:** in `bubbleFragmentShader`, `fresnel * vec3(1.0, 0.95, 1.0) * uGlow` (with `uGlow` ranging ~0.47–1.03) adds a near-white wash on top of `base` color across most of the visible rim, and `diffuse`/`spec` add further white highlights. Combined with `alpha` already at 0.72–1.0, the net effect on nearly-overlapping spheres is a uniform pale/white cloud rather than colorful, individually-shaded orbs.
-
-**Fix:**
-- Spread bubbles further apart and/or reduce count visible at once (e.g. 4–6 bubbles but with larger position deltas, or push some further back in `z` with proportionally smaller `scale` for actual depth parallax instead of just alpha-blended overlap).
-- Reduce the fresnel/glow contribution so the base color (from `theme.json`'s `bubblePalette`, which is correctly wired through `themeConfig.bubblePalette`) stays visible — e.g. tone `uGlow` down to ~0.35–0.55 range and reduce the fresnel exponent/multiplier, or blend the rim glow using `mix(base, rim, fresnel)` instead of additive-on-top-of-alpha so it doesn't wash to white.
-- After the fix, confirm via a Chrome MCP screenshot that you can count 4–6 visually distinct, differently-colored, individually-shaded spheres — not one shape.
-
-## 4. HIGH — missing image assets across every section (all the "broken image" icons in the screenshots)
-
-Every one of these JSON-referenced files is missing from `public/` in the bundle (only `robots.txt`, `sitemap.xml`, `llms.txt` were listed under `public/`):
-- `skills.json` → `/icons/git.svg`, `/icons/ts.svg`, `/icons/react.svg`, `/icons/nextjs.svg`, `/icons/expo.svg`, `/icons/tailwind.svg`, `/icons/socketio.svg`, `/icons/express.svg`, `/icons/postgres.svg`, `/icons/jest.svg`, `/icons/docker.svg`, `/icons/nginx.svg`, `/icons/motion.svg`, `/icons/three.svg` (14 files)
-- `experience.json` → `/icons/upwork.svg`, `/icons/youtube.svg`
-- `projects.json` → `/projects/open-source.webp`, `/projects/github.webp`
-- `profile.json` → `/avatar.webp`
-
-This is why `03-skills.png`, `04-experience.png`, `06-projects.png`, and the avatar frame in `02-hero.png`/`08-fullpage.png` all show broken-image glyphs instead of icons/photos.
-
-**Fix:**
-- Add real files at every path referenced above under `public/`. Source real logos for Git/TypeScript/React/Next.js/Expo/Tailwind/Socket.IO/Express/PostgreSQL/Jest/Docker/Nginx/Motion/Three.js (official brand SVGs, sized consistently, or a single icon-set like Simple Icons — https://simpleicons.org/ — for visual consistency), an Upwork and YouTube icon for experience, real project preview images (or at minimum a designed placeholder that isn't the browser's broken-image glyph), and a real avatar photo/graphic.
-- Add a build-time or CI check (simple Node script) that reads every `src/data/*.json` file, extracts every `icon`/`image`/`avatar` path, and asserts the file exists under `public/` — fail the build if not. This prevents this exact class of bug from recurring every time someone edits the CMS JSON per `builder.md` §2/§10 ("all content edits only require touching `src/data/*.json`" implicitly promises those edits won't silently 404).
-- Re-verify with Chrome MCP: open the Network panel/requests list and confirm zero 404s for any asset on the page.
-
-## 5. HIGH — scroll-reveal animations don't reliably show (root cause of "no scroll animations")
-
-`Skills.tsx`, `Experience.tsx`, `About.tsx`, `Projects.tsx` all use `motion.div` with:
+Compare that to the shapes in `02-hero.png`: soft-edged, no circular silhouette, no rim light, no undulation — this is a blurred CSS gradient, not `<Sphere args={[1,48,48]}>` geometry. All the shader/lighting improvements in fixed-item #4 above are real and correct **but they are never being exercised**, because the component is falling through to:
 ```tsx
-initial={{ opacity: 0, y: 24 }}
-whileInView={{ opacity: 1, y: 0 }}
-viewport={{ once: false, amount: 0.25, margin: '-10% 0px -10% 0px' }}
+const [canRender] = useState(() => {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false
+  const hw = navigator.hardwareConcurrency
+  if (typeof hw === 'number' && hw <= 4) return false
+  return true
+})
 ```
-This makes visibility **entirely dependent on a real, correctly-fired `IntersectionObserver` entry**. In the provided screenshots, only the first 1–2 items per section ever reached `opacity: 1` — everything below the initial viewport stayed at `opacity: 0` forever, because no real incremental scrolling occurred before the screenshot was taken (a single full-page capture does not replay scroll-driven intersection events for content below the fold). That's a real fragility, not just a screenshot artifact: `once: false` means items also **re-hide** every time they scroll back out past the margin, so a user who scrolls up even slightly can see content vanish again, which reads as "broken," not "animated."
+Headless/sandboxed Chrome instances (the kind Chrome DevTools MCP drives, and many CI runners) very commonly report `navigator.hardwareConcurrency` as a low, non-representative number (frequently ≤ 4, sometimes 1–2), and this same low-core ceiling is also common on real budget laptops, most Chromebooks, and — because several browsers deliberately cap the value for fingerprinting resistance — a meaningful slice of real desktop users too. So this heuristic is disabling the 3D bubbles both in your test environment and for a real, non-trivial share of real visitors. This is a functional regression against the explicit "3D glowing bubbles" requirement in `planner.md` §F / `builder.md` §7, and it fully explains all three of your remaining complaints ("don't look 3D", "no waving effect", "no shader effect") — they're all true of the CSS fallback by design, and none of them are things the fallback was ever meant to do.
 
 **Fix:**
-- Switch entrance reveals to `viewport={{ once: true, amount: 0.2 }}` (drop the aggressive `-10%` margin) so each section reveals once and then stays visible regardless of later scroll direction — this is the standard, robust pattern per https://motion.dev/docs/react-scroll-animations and avoids content disappearing on scroll-up.
-- Reserve `once: false` only for genuinely decorative/repeatable effects (e.g. a parallax `y` transform driven by `useScroll`/`useTransform`, which is scroll-*linked* rather than a discrete reveal, and is fine as continuous).
-- As a safety net, make sure nothing depends solely on JS for basic readability: if you want to be extra defensive, ship `initial` opacity at something like `0` only when `motion` has mounted client-side (it already will, since this is a full CSR app), but keep the `once:true` fix as the main correctness fix.
-- Re-verify with Chrome MCP by scrolling the real page in increments (not a single full-page screenshot) and confirming each section's cards animate to full opacity as they enter the viewport, and **stay** visible when scrolling back up.
+- Remove the static `hardwareConcurrency <= 4` gate entirely, or at minimum raise/soften it drastically (e.g. only treat `hardwareConcurrency <= 2` as "definitely too weak," which is a much rarer, more honest signal of a genuinely low-end device).
+- Replace the static heuristic with a **runtime capability probe**: attempt to create the WebGL canvas always, run it for the first ~1–2 seconds, measure actual frame time via `requestAnimationFrame` deltas, and only fall back to the CSS gradient if real measured frame time is consistently bad (e.g. > 33ms/frame sustained). This degrades gracefully based on what the device can actually do, rather than a proxy signal that's unreliable in exactly the environment you're testing in.
+- Keep the `prefers-reduced-motion` check as-is — that one is a legitimate, explicit user preference, not a guess.
+- **Verify with Chrome MCP directly**, don't trust the screenshot alone: open the live preview, inspect the DOM for an actual `<canvas>` element inside `GlowBubblesWrapper`, confirm `navigator.hardwareConcurrency` in that Chrome MCP instance, and confirm in the Performance panel that WebGL draw calls are actually happening. If `<canvas>` is absent and only the fallback `<div>` is present, the fix above hasn't landed yet — don't move on until you can see actual sphere silhouettes with visible rim lighting and undulation.
 
-## 6. MEDIUM — large empty vertical gaps between sections
+## 🟡 Open issue #2 (MEDIUM) — second item in Experience and Projects renders mid-fade
 
-`08-fullpage.png` shows large blank bands between "My Skills" and "My Experiences" and between "My Experiences" and "My Projects" — far more space than the actual content (which currently looks like 1–2 items because of bug §5) would need. Since no `min-height`/`100vh` rule exists in `src/index.css`, this is most likely coming from the Astryx `<Section variant="section">` component's own default vertical rhythm/padding combined with `padding={6}`, compounded visually by bug §5 making sections look emptier than they are.
+`04-experience.png` (per-section screenshot, not the full-page one) shows "Teaching" — the second experience card — at roughly 20–30% opacity, not fully revealed; `06-projects.png` shows the second project card ("02 — Projects") the same way. Both sections only have 2 items, both should easily fit in one viewport, and both now use `once: true, amount: 0.2`, so this shouldn't still be a permanently-stuck state — it looks instead like the screenshot was captured **before** the stagger/transition finished animating (`transition: { duration: 0.6, delay: i * 0.08 }` means item index 1 finishes at ~0.68s after entering view).
 
 **Fix:**
-- Once bug §5 is fixed and all cards render, re-screenshot and re-assess — most of the perceived gap may disappear once the grids are full.
-- If gaps remain, inspect the Astryx `Section` component's computed styles via Chrome MCP (`Elements` panel / computed styles) and check its default `min-height`/`padding` tokens against `astryx.atmeta.com/docs/layout` and `.../docs/tokens`; override via `xstyle`/tokens rather than ad hoc inline styles, per the "customize via StyleX/theme, don't fight the component" rule in `builder.md` §0/§3.
+- When capturing verification screenshots via Chrome MCP, wait for animations to settle (e.g. wait ~800ms–1s after scrolling to a section, or wait for network/animation idle) before taking the screenshot, so you're evaluating the resting state, not a mid-transition frame.
+- Independently, consider whether a real user could ever perceive this same half-revealed state as "stuck" — e.g. if they scroll unusually fast. If so, shorten the per-item stagger delay for very short lists (2 items) or drop the stagger delay entirely for lists under ~3 items, since stagger exists to avoid a jarring "pop-in" of many items at once and provides little benefit for 2.
+- Re-verify by scrolling to `#experience` and `#projects` in a real (not full-page) session, waiting for the animation to finish, and confirming both cards sit at full opacity at rest.
 
-## 7. MEDIUM — low contrast / washed-out look
+## 🟢 Everything else — status check against planner.md / builder.md
 
-Cards across `03`, `04`, `06` render at very low apparent contrast against the dark background even where content is visible. This may be compounded by bug §5 (partial opacity mid-animation captured at 0-40%), but should still be independently checked once fixed.
+- **CMS**: confirmed unchanged and still correct — all copy still flows only through `src/lib/content.ts` → `src/data/*.json`, no hardcoded strings found in the components reviewed. No action needed here beyond what's already tracked.
+- **Header/nav, footer, about, skills grid, layout spacing**: all match the intended soft-pop neobrutalist direction reasonably well in the new screenshots (thick borders, hard offset shadows, pill buttons, badges) — no new issues spotted here.
+- **SEO/head tags, robots/sitemap/llms.txt**: unchanged from v1, still assumed fine pending a real Lighthouse SEO run (see below).
 
-**Fix:** After fixing §5, re-run Lighthouse's Accessibility audit and manually check `--color-text-secondary` / `--color-border` / `--color-background-body` (dark variant: `#1A1A2E` body per `softPopTheme.ts`) against WCAG AA contrast (4.5:1 body text, 3:1 large text/borders). Adjust theme tokens in `softPopTheme.ts`/`theme.json` if any combination fails.
+## Re-verification protocol (unchanged from v1, still not executed by me — must be run for real)
 
-## 8. CMS check — status: mostly good, one gap
-
-Confirmed via source review that content is properly centralized:
-- `src/lib/content.ts` is the single validated (`zod`) loader and all components (`Hero`, `Skills`, `Experience`, `About`, `Projects`, `Footer`, `TopNav`, `Seo`) import from it, never straight from `../data/*.json` — matches `builder.md` §2 exactly. Good, keep this pattern.
-- `src/data/*.json` covers profile, ui strings, skills, experience, about, projects, seo, theme — matches `PLAN.md` §A schema.
-
-**Gap to fix:** the JSON schema lets you *reference* images/icons freely, but there is currently no way to know an entry is broken until you look at the rendered page (bug §4). Add the asset-existence build check described in §4, and add a short note to `src/data/README.md` telling a non-developer editor exactly where to drop new icon/image files (`public/icons/`, `public/projects/`) when they add a new skill/project entry.
-
-## 9. Re-verification protocol (must be run for real, by the builder agent, with actual tool access)
-
-I could not execute these myself in this session — no Chrome MCP/browser tool was available to me here. The builder agent doing the fix pass must:
-1. Run `npm run build && npm run preview` and open the preview URL with Chrome DevTools MCP.
-2. Take a DOM/accessibility snapshot; confirm 0 broken images (Network panel, filter by status ≥ 400).
-3. Scroll the page in real, incremental steps (not one full-page capture) and screenshot at each section to confirm scroll-reveal animations actually play and persist per the `once: true` fix in §5.
-4. Record a Performance trace across the hero for 20–30s confirming the WebGL canvas is producing continuous frames (fix §2) at a steady ~60fps, and that spheres are visually distinct and shaded (fix §3), with a stable/flat JS heap (no leak).
-5. Run Lighthouse (mobile + desktop) on the fixed build and write fresh numbers into `BENCHMARKS.md`, explicitly superseding the current numbers, which were measured against a build that had a frozen 3D canvas and broken images — those numbers describe a different, broken artifact and should not be relied on for the fixed version, particularly Performance/Accessibility which are directly affected by fixes §2–§7.
-6. Only after all of the above pass should `requirements.md` items be marked resolved.
+1. Run `npm run build && npm run preview`, open with Chrome DevTools MCP.
+2. **Specifically confirm a `<canvas>` element exists and is drawing** inside the hero (issue #1) — this is the one thing that has not yet been proven to work even once.
+3. Scroll incrementally to `#experience` and `#projects`, wait for transitions to finish, screenshot at rest (issue #2).
+4. Run a Performance trace over the hero for 20–30s confirming continuous WebGL frames at ~60fps once issue #1 is fixed, and confirm distinct, individually-shaded, waving spheres are visible (not a blurred blob).
+5. Run Lighthouse (mobile + desktop) on the fixed build and update `BENCHMARKS.md` with real numbers — the existing benchmark claims still describe a build where the 3D canvas was never actually exercised, so Performance/visual-stability numbers from it are not representative of the real 3D-enabled experience.
+6. Only close out this requirements pass once a Chrome MCP screenshot shows real, distinct, shaded, animated 3D bubbles — not the gradient fallback.

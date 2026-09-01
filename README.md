@@ -53,7 +53,7 @@ See `PLAN.md:D` for token table and `https://astryx.atmeta.com/docs/theme`.
 
 - `MotionConfig reducedMotion="user"` in `src/main.tsx:9`
 - Hero stagger, scroll `whileInView`, hover `whileHover`/`whileTap`, tilt `rotateX/Y`, progress `useScroll`+`useSpring` (`src/components/ScrollProgress.tsx:1`)
-- Bubbles `src/components/GlowBubbles/` lazy Canvas `dpr={[1,2]}` `frameloop="demand"` + `IntersectionObserver` + `hardwareConcurrency<=4` fallback (static gradient)
+- Bubbles `src/components/GlowBubbles/` lazy Canvas `dpr={[1,2]}` `frameloop="always"` + `IntersectionObserver` pause when offscreen + `prefers-reduced-motion` fallback (static gradient)
 
 ## SEO & AI
 

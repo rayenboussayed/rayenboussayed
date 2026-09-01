@@ -141,8 +141,8 @@ dist/assets/CanvasWrapper-DxS_7mm-.js  940.86 kB │ gzip: 254.99 kB  ← lazy (
 ## 6. Reduced Motion & Low-End Fallbacks
 
 - **Reduced motion:** `useState(() => matchMedia('(prefers-reduced-motion: reduce)').matches)` guard in `GlowBubblesWrapper` — if true, canvas never mounts, renders CSS `radial-gradient` + `blur(20px)` fallback instead (still "glowing", non-animated) — verified via component logic and manual emulation concept
-- **Low-end:** `navigator.hardwareConcurrency <=4` → same fallback (static gradient) — prevents jank on constrained devices
-- **Motion fallback in sections:** `useReducedMotion()` hook returns early `variants = {}` → no stagger, instant opacity 1 — keeps content visible without animation
+- **Low-end:** *(removed `hardwareConcurrency <=4` gate — it disabled 3D for headless/CI and many real devices (1-4 cores common), now only `prefers-reduced-motion` disables. Pause still via `IntersectionObserver` unmount + `frameloop="always"` )*
+- **Motion fallback in sections:** `useReducedMotion()` hook returns early `variants = {}` → no stagger, instant opacity 1 — keeps content visible without animation; 2-item lists `Experience`/`Projects` now `delay: length<3 ? 0 : i*0.08` to avoid mid-fade screenshot
 
 ## 7. React Compiler
 

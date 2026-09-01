@@ -222,9 +222,9 @@ Keep to `transform`/`opacity` only for 60fps per https://motion.dev/docs/react-m
 **Performance guardrails (mandatory verify via Chrome MCP):**
 - Cap 6–10 spheres (8 default), low-poly 32 segments; `InstancedMesh` if >10.
 - `dpr` clamp `Math.min(devicePixelRatio,2)` via `dpr={[1,2]}`.
-- `frameloop="demand"` + `invalidate()` only while hero intersecting (`IntersectionObserver`); pause on `document.visibilitychange` or scrolled away threshold 200px.
+- `frameloop="always"` (was `demand` + `invalidate()`, but `demand` froze `useFrame` — switched to `always` with unmount-pause). Pause via unmounting `<GlowCanvas>` when `!visible` (`IntersectionObserver 0.1`) + `visibilitychange`.
 - Cleanup `geometry.dispose(); material.dispose(); gl.forceContextLoss();` — verify WebGL context 1→0 on unmount.
-- Skip Canvas if `prefers-reduced-motion: reduce` or `navigator.hardwareConcurrency <=4` — render CSS `radial-gradient` + `blur(40px)` fallback.
+- Skip Canvas only if `prefers-reduced-motion: reduce` — render CSS `radial-gradient` + `blur(40px)` fallback (removed `hardwareConcurrency <=4` gate which disabled 3D for headless/CI and many real devices).
 - Code-split so three chunk never blocks LCP.
 
 ---

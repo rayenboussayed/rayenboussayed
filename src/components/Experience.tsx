@@ -21,7 +21,8 @@ export function Experience() {
             initial={reduce ? false : { opacity: 0, x: -24 }}
             whileInView={reduce ? undefined : { opacity: 1, x: 0 }}
             viewport={{ once: true, amount: 0.2 }}
-            transition={{ duration: 0.6, delay: i * 0.08, ease: 'easeOut' }}
+            // No stagger for 2-item list — avoids mid-fade perception on fast scroll/screenshot
+            transition={{ duration: 0.6, delay: experience.length < 3 ? 0 : i * 0.08, ease: 'easeOut' }}
           >
             <Card padding={4} className="soft-pop-card" style={{ display: 'grid', gridTemplateColumns: '64px 1fr', gap: 16, alignItems: 'start' }}>
               <img src={item.icon} alt={item.role} width={64} height={64} loading="lazy" style={{ width: 64, height: 64, borderRadius: 12, objectFit: 'cover', border: '2px solid var(--color-border)' }} />
