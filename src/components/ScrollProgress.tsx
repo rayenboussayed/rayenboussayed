@@ -1,12 +1,14 @@
-import { motion, useScroll, useSpring } from 'motion/react'
+import { motion, useScroll, useSpring, useReducedMotion } from 'motion/react'
 
 /**
  * Scroll progress bar — fixed top, scaleX via useScroll + useSpring.
- * Keeps to transform/opacity only for 60fps. Hide if reduced motion via CSS.
+ * Keeps to transform/opacity only for 60fps. Respects prefers-reduced-motion.
  */
 export function ScrollProgress() {
+  const reduce = useReducedMotion()
   const { scrollYProgress } = useScroll()
   const scaleX = useSpring(scrollYProgress, { stiffness: 100, damping: 30, restDelta: 0.001 })
+  if (reduce) return null
   return (
     <motion.div
       aria-hidden="true"

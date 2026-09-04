@@ -1,14 +1,33 @@
 import { Button } from '@astryxdesign/core/Button'
 import { motion, useReducedMotion } from 'motion/react'
-import { profile } from '../lib/content'
+import { useContentWithLive as useContent } from '../context/LiveTranslationContext'
+import { TextSkeleton } from './TextSkeleton'
 
 
 /**
  * Hero — single H1, role, tagline, CTAs, socials.
  * Motion: parent stagger + CTA fade-up. Reduced-motion guard.
+ * Live: skeleton while translating (no stale English flash, `aria-busy`).
  */
 export function Hero() {
+  const { profile, ui, isTranslating } = useContent()
   const reduce = useReducedMotion()
+
+  if (isTranslating) {
+    return (
+      <section id="hero" aria-labelledby="hero-heading" aria-busy="true" style={{ position: 'relative', overflow: 'hidden' }}>
+        <div style={{ maxWidth: 1120, margin: '0 auto', padding: '56px 16px 32px', display: 'grid', gridTemplateColumns: '1fr auto', gap: 32, alignItems: 'center' }}>
+          <div>
+            <h1 id="hero-heading" style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap' }}>
+              {ui.live.translating}
+            </h1>
+            <TextSkeleton lines={4} label={ui.live.translating} />
+          </div>
+          <div aria-hidden="true" style={{ width: 180, height: 180, borderRadius: 28, border: '3px solid var(--color-border)', background: 'var(--color-background-surface)' }} />
+        </div>
+      </section>
+    )
+  }
 
   const container = reduce
     ? {}
@@ -50,7 +69,7 @@ export function Hero() {
             {profile.location} • {profile.availability}
           </motion.p>
           <motion.h1 id="hero-heading" variants={item as never} style={{ fontSize: 'clamp(36px, 6vw, 56px)', fontWeight: 800, lineHeight: 1, letterSpacing: -1.2, margin: '12px 0', color: 'var(--color-text-primary)' }}>
-            Hello, I&apos;m {profile.name}.
+            {ui.common.helloPrefix} {profile.name}.
             <br />
             <span style={{ color: 'var(--color-accent)' }}>{profile.role}</span>
           </motion.h1>
@@ -80,7 +99,7 @@ export function Hero() {
             height: 180,
             borderRadius: '28px',
             border: '3px solid var(--color-border)',
-            boxShadow: '6px 6px 0 var(--color-border)',
+            boxShadow: 'var(--shadow-med)',
             background: 'var(--color-background-surface)',
             display: 'grid',
             placeItems: 'center',

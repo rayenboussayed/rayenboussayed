@@ -3,13 +3,25 @@ import { Heading } from '@astryxdesign/core/Heading'
 import { Text } from '@astryxdesign/core/Text'
 import { Section } from '@astryxdesign/core/Section'
 import { motion, useReducedMotion } from 'motion/react'
-import { experience, ui } from '../lib/content'
+import { useContentWithLive as useContent } from '../context/LiveTranslationContext'
+import { TextSkeleton } from './TextSkeleton'
 
 /**
  * Experience timeline — scroll reveals staggered.
+ * Live: skeleton while translating (no stale English flash, `aria-busy`).
  */
 export function Experience() {
+  const { experience, ui, isTranslating } = useContent()
   const reduce = useReducedMotion()
+  if (isTranslating) {
+    return (
+      // @ts-ignore — id/aria pass-through
+      <Section role="region" id="experience" aria-labelledby="experience-heading" aria-busy="true" padding={6} variant="section">
+        <Heading level={2} id="experience-heading" style={{ fontWeight: 800 }}>{ui.live.translating}</Heading>
+        <TextSkeleton lines={4} label={ui.live.translating} />
+      </Section>
+    )
+  }
   return (
     // @ts-ignore — id/aria pass-through
     <Section role="region" id="experience" aria-labelledby="experience-heading" padding={6} variant="section">
@@ -20,7 +32,8 @@ export function Experience() {
             key={item.id}
             initial={reduce ? false : { opacity: 0, x: -24 }}
             whileInView={reduce ? undefined : { opacity: 1, x: 0 }}
-            viewport={{ once: true, amount: 0.2 }}
+            // v9 §8: replay on every re-enter, both scroll directions
+            viewport={{ once: false, amount: 0.2 }}
             // No stagger for 2-item list — avoids mid-fade perception on fast scroll/screenshot
             transition={{ duration: 0.6, delay: experience.length < 3 ? 0 : i * 0.08, ease: 'easeOut' }}
           >

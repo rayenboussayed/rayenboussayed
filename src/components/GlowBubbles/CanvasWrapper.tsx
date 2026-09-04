@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { Canvas, useThree } from '@react-three/fiber'
-import { Environment } from '@react-three/drei'
 import { Bubble } from './Bubble'
 import { themeConfig } from '../../lib/content'
 
 function Cleanup() {
   const { gl } = useThree()
+  // Runs only on true unmount (wrapper stays mounted for page lifetime, so
+  // this fires ~never — no per-scroll context destroy; v9 §9.2).
   useEffect(() => {
     return () => {
       try {
@@ -32,13 +33,23 @@ const bubbles: Array<{ pos: [number, number, number]; scale: number; colorA: str
   { pos: [-1.8, -1.0, -0.5], scale: 0.88, colorA: '#FF6B9D', colorB: '#FBBF24' },
 ]
 
-export function GlowCanvas({ visible }: { visible: boolean }) {
+/**
+ * GlowCanvas — REQUIREMENTS v9 §9.
+ * - Mounted once, never unmounted on scroll: the GL context is created once,
+ *   so repeated hero exits can't exhaust contexts (§9.2).
+ * - `active` flips `frameloop` between `'always'` (hero on screen + tab
+ *   visible) and `'never'` (off-screen/hidden) instead of unmounting — orbs
+ *   animate while visible and cost nothing while not.
+ * - No remote HDR: bubbles use a custom ShaderMaterial that ignores
+ *   scene.environment, so `<Environment preset="city">` only added a CDN
+ *   fetch that could suspend the canvas blank (§9.3). Local lights only.
+ */
+export function GlowCanvas({ active }: { active: boolean }) {
   const palette = themeConfig.bubblePalette.length >= 2 ? themeConfig.bubblePalette : ['#FF6B9D', '#7B61FF']
-  if (!visible) return null
   return (
     <Canvas
       dpr={[1, 2]}
-      frameloop="always"
+      frameloop={active ? 'always' : 'never'}
       gl={{ antialias: true, alpha: true }}
       camera={{ position: [0, 0, 5], fov: 45 }}
       style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
@@ -46,7 +57,6 @@ export function GlowCanvas({ visible }: { visible: boolean }) {
       <ambientLight intensity={0.85} />
       <directionalLight position={[3, 4, 5]} intensity={1.15} />
       <pointLight position={[5, 5, 5]} intensity={2} distance={18} decay={2} />
-      <Environment preset="city" />
       {bubbles.map((b, i) => (
         <Bubble key={i} position={b.pos} scale={b.scale} colorA={palette[i % palette.length] ?? b.colorA} colorB={palette[(i + 1) % palette.length] ?? b.colorB} />
       ))}
@@ -57,7 +67,11 @@ export function GlowCanvas({ visible }: { visible: boolean }) {
 
 export function GlowBubblesWrapper() {
   const ref = useRef<HTMLDivElement>(null)
-  const [visible, setVisible] = useState(true)
+  // Active = hero intersecting AND tab visible. Latest intersection lives in a
+  // ref so tab-return restores correctly (§9.1: the old updater closed over
+  // stale `v` and stayed false forever after any tab switch).
+  const [active, setActive] = useState(true)
+  const intersectingRef = useRef(true)
   // Only respect explicit user preference; do not guess via hardwareConcurrency
   // (headless CI and many real devices report ≤4, which would incorrectly disable 3D)
   const [canRender] = useState(() => {
@@ -68,18 +82,24 @@ export function GlowBubblesWrapper() {
 
   useEffect(() => {
     if (!canRender) return
+    const sync = () => setActive(intersectingRef.current && !document.hidden)
     const el = ref.current
-    if (!el || typeof IntersectionObserver === 'undefined') return
-    const io = new IntersectionObserver(
-      (entries) => entries.forEach((e) => setVisible(e.isIntersecting)),
-      { threshold: 0.1 },
-    )
-    io.observe(el)
-    const onVis = () => setVisible((v) => (document.hidden ? false : v))
-    document.addEventListener('visibilitychange', onVis)
+    const io =
+      typeof IntersectionObserver !== 'undefined' && el
+        ? new IntersectionObserver(
+            (entries) =>
+              entries.forEach((e) => {
+                intersectingRef.current = e.isIntersecting
+                sync()
+              }),
+            { threshold: 0.1 },
+          )
+        : null
+    if (io && el) io.observe(el)
+    document.addEventListener('visibilitychange', sync)
     return () => {
-      io.disconnect()
-      document.removeEventListener('visibilitychange', onVis)
+      io?.disconnect()
+      document.removeEventListener('visibilitychange', sync)
     }
   }, [canRender])
 
@@ -102,7 +122,7 @@ export function GlowBubblesWrapper() {
 
   return (
     <div ref={ref} aria-hidden="true" style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
-      <GlowCanvas visible={visible} />
+      <GlowCanvas active={active} />
     </div>
   )
 }

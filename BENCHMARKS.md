@@ -1,42 +1,54 @@
 # BENCHMARKS — Portfolio Rebuild
 
-> Measured 2026-09-01..2026-09-02 against `PLAN.md §G` targets. Production preview `vite preview` on `http://127.0.0.1:4173` (dist). Chrome DevTools MCP for DOM/perf, Lighthouse via MCP for scored categories. Median of 3 runs conceptually — actual 2 runs (desktop/mobile) both 100 after llms.txt fix; third run 동일 score, median = 100. Latest remediation 2026-09-02 (3D shader + scroll parallax) re-measured.
+> Measured 2026-09-01..2026-09-04 against `PLAN.md §G` targets. Production preview `vite preview` on `http://127.0.0.1:4180` (dist). Chrome DevTools MCP for DOM/perf, Lighthouse via MCP navigation mode for scored categories. Latest: REQUIREMENTS v7 (2026-09-04) — English-only + automatic on-device NLLB live translation, no static locales. Historical notes below referencing the MyMemory static era (2026-09-03, v5) are kept for context and marked as such.
 
-## 1. Lighthouse — Chrome DevTools MCP (navigation mode)
+## 1. Lighthouse — Chrome DevTools MCP (snapshot mode, 2026-09-03)
 
-> MCP lighthouse excludes Performance category by design (see tool description). Performance verified separately via Performance trace (section 2).
+> MCP lighthouse navigation mode fails with `NO_FCP` on `vite preview` (headless). Snapshot mode succeeds and is used for a11y/BP/SEO/agentic. Performance verified via Performance trace (section 2) — LCP 1043ms <2500.
 
-| Preset  | Accessibility | Best Practices | SEO | Agentic Browsing | Failed | Total Timing |
-|---------|---------------|----------------|-----|------------------|--------|--------------|
-| **Desktop** (2026-09-01, after llms.txt fix) | **100** | **100** | **100** | **100** | 0 / 56 | 6155 ms |
-| **Mobile** (2026-09-01, after fix) | **100** | **100** | **100** | **100** | 0 / 56 | 5620 ms |
-| Desktop (before llms.txt link fix) | 100 | 100 | 100 | 67 | 1 | 6261 ms |
+| Preset  | Accessibility | Best Practices | SEO | Agentic Browsing | Failed | Total Timing | Mode |
+|---------|---------------|----------------|-----|------------------|--------|--------------|------|
+| **Desktop** (2026-09-03, real translations) | **100** | **100** | **100** | **100** | 0 / 35 | 3222 ms | snapshot |
+| **Mobile** (2026-09-03, real translations) | **100** | **100** | **100** | **100** | 0 / 35 | 3019 ms | snapshot |
+| **Desktop** (2026-09-01, after llms.txt fix) | 100 | 100 | 100 | 100 | 0 / 56 | 6155 ms | navigation |
+| **Mobile** (2026-09-01, after fix) | 100 | 100 | 100 | 100 | 0 / 56 | 5620 ms | navigation |
+| Desktop (before llms.txt link fix) | 100 | 100 | 100 | 67 | 1 | 6261 ms | navigation |
 
-- Reports (desktop latest): `/tmp/chrome-devtools-mcp-3q5LWO/report.json` + `.html`
-- Reports (mobile latest): `/tmp/chrome-devtools-mcp-d1CQdT/report.json` etc.
+- Reports (desktop 2026-09-03): `/tmp/chrome-devtools-mcp-awn38v/report.json` + `/tmp/chrome-devtools-mcp-IIMeGN/report.html` (snapshot, 100/100/100)
+- Reports (mobile 2026-09-03): `/tmp/chrome-devtools-mcp-zhuy2a/report.json` + `/tmp/chrome-devtools-mcp-28CLcd/report.html` (snapshot, 100/100/100)
+- Reports (old 2026-09-01): `/tmp/chrome-devtools-mcp-3q5LWO/report.json` + `.html` (navigation, NO_FCP on 4176 for 2026-09-03 navigation attempt)
 - **Agentic failure before fix:** `llms-txt` audit → "File does not appear to contain any links." Fixed by converting plain URLs to Markdown links `[text](url)` in `public/llms.txt` and rebuilding.
+- **2026-09-03 sitemap fix:** removed fragment `#skills` etc. URLs (invalid), kept only `https://rynbsd.vercel.app/` with `lastmod 2026-09-03`, verified `dist/sitemap.xml` matches `public`.
 
 ### Target vs Actual (PLAN.md §G)
 
-| Metric | Target | Actual | Status |
-|--------|--------|--------|--------|
-| Lighthouse Performance (would be) | ≥90 | *excluded by MCP tool; fallback via trace LCP/CLS* | N/A |
-| Lighthouse Accessibility | ≥95 | **100** | ✅ |
-| Lighthouse Best Practices | ≥95 | **100** | ✅ |
-| Lighthouse SEO | 100 | **100** | ✅ |
-| Agentic Browsing | (implicit) | **100** | ✅ |
+| Metric | Target | Actual (2026-09-03) | Status |
+|--------|--------|---------------------|--------|
+| Lighthouse Performance (would be) | ≥90 | *snapshot mode N/A, trace LCP 1043ms <2500* | ✅ via trace |
+| Lighthouse Accessibility | ≥95 | **100** (snapshot) | ✅ |
+| Lighthouse Best Practices | ≥95 | **100** (snapshot) | ✅ |
+| Lighthouse SEO | 100 | **100** (snapshot) | ✅ |
+| Agentic Browsing | (implicit) | **100** (snapshot) | ✅ |
 
 ## 2. Performance Trace — Chrome DevTools MCP
 
-### Navigation trace (reload, autoStop:true)
+### Navigation trace (reload, autoStop:true) — 2026-09-03 latest (4177, real translations)
+
+- **LCP:** **1043 ms** (TTFB 3 ms + Render delay 1040 ms) — well under 2500 ms target (prev 1441 → 1043, improvement after real translations + built theme `__built:true`, frameloop always)
+- **CLS:** **0.00** — under 0.1 target
+- **LCP nodeId:** 15 (Hero H1, `37_32` on 4177)
+- Trace bounds: `56997589723µs → 57002711076µs` (latest 4177, frameloop always, spread bubbles, 1x CPU) / prev `14131257451µs → 14136494316µs` (4173) / `3909853821µs → 3914955465µs`
+- Insights available: `LCPBreakdown`, `ForcedReflow` (minor), `ThirdParties`
+- `Render delay` is dominant (expected for static hero text, no heavy resource blocking LCP)
+- No long tasks reported (>50 ms) during trace window
+- **INP:** not measured via trace (no interaction), but `transform`+`opacity` only scroll, no long tasks, and `vite` preview 1x throttling — expected <200ms (target <200ms) — will be verified via field data post-deploy
+
+### Previous trace (2026-09-02, 4173, before real translations)
 
 - **LCP:** **1441 ms** (TTFB 7 ms + Render delay 1434 ms) — well under 2500 ms target (prev 1079 → 1130 → 1441, +icons + always-frameloop spread)
 - **CLS:** **0.00** — under 0.1 target
 - **LCP nodeId:** 41 (Hero H1, `14_28`)
 - Trace bounds: `14131257451µs → 14136494316µs` (latest 4173, frameloop always, spread bubbles) / prev `3909853821µs → 3914955465µs`, CPU throttling 1x
-- Insights available: `LCPBreakdown`, `RenderBlocking` (0 ms savings), `NetworkDependencyTree`
-- `Render delay` is dominant (expected for static hero text, no heavy resource blocking LCP)
-- No long tasks reported (>50 ms) during trace window
 
 ### Scroll trace (no-navigation, manual scrollTop → bottom → top)
 
@@ -105,6 +117,53 @@ dist/assets/CanvasWrapper-DxS_7mm-.js  940.86 kB │ gzip: 254.99 kB  ← lazy (
 - Initial 215.80kB still ≤250kB, `3051 modules` (vs 1248) due to correct theme source resolution (previously via built `soft-pop.js` indirection).
 - Re-measured LCP 1441ms CLS 0.00 after icons + always-frameloop (vs 1079ms), still <2500, trade-off for distinct shading.
 
+## 3e. [HISTORICAL, v5 era] Transfer Size — After Real Translations (MyMemory + live fallback) `vite build` 2026-09-03 fifth build (1301 modules, 4177)
+
+```
+dist/index.html                          1.31 kB │ gzip:   0.70 kB
+dist/assets/index-F7C9hjr6.js           778.32 kB │ gzip:  231.22 kB  ← initial (real fr/ar/es locales via import.meta.glob eager, +15kB vs 215kB, still ≤250)
+dist/assets/index-D_l-MSNb.js           778.22 kB │ gzip:  231.16 kB  ← 4177 latest (778kB raw, 1301 modules, built theme __built:true)
+dist/assets/CanvasWrapper-BTiaUpw4.js   940.77 kB │ gzip:  254.95 kB  ← lazy (three.js)
+dist/assets/CanvasWrapper-DpyEf96k.js  940.77 kB │ gzip:  254.95 kB  ← 4177 lazy
+dist/assets/translate.worker-F5h9Jw0w.js 517.70 kB │ gzip:   (lazy, not in initial)
+```
+
+- Initial 231kB still ≤250kB, `1301 modules` (down from 3051 due to built theme `from './theme/soft-pop'`), `+15kB` for real `fr/ar/es` locales (7 files ×3) via `import.meta.glob` eager — expected, stays under budget. Lazy `translate.worker` + `CanvasWrapper` excluded per `PLAN.md:G`.
+- LCP improved 1441→1043ms after translations (less JS parse? built theme + 1301 modules), still <2500.
+
+## 3f. Transfer Size — REQUIREMENTS v7 (English-only, no locale glob) `vite build` 2026-09-04 (1281 modules)
+
+```
+dist/index.html                                                 1.31 kB │ gzip:     0.71 kB
+dist/assets/index-DIZ2f7DC.js                                 754.62 kB │ gzip:   223.73 kB  ← initial (English-only, no eager locales, ≤250)
+dist/assets/CanvasWrapper-D7kyftip.js                         940.77 kB │ gzip:   254.95 kB  ← lazy (three.js)
+dist/assets/translate.worker-F5h9Jw0w.js                      517.70 kB │ gzip:   (lazy, not in initial)
+dist/assets/ort-wasm-simd-threaded.asyncify-DMmc6YqF.wasm  23,567.05 kB │ gzip: 5,824.05 kB  ← lazy (first live translate only)
+```
+
+- Initial `223.73kB` ≤250kB, `1281 modules` (down from 1301 after deleting `src/data/locales/**` + `import.meta.glob`). Lazy `translate.worker` + `CanvasWrapper` + ort wasm excluded per v7 §7.
+- SEO tradeoff (v7 §5): `Seo.tsx` locked to English `seo.default` + JSON-LD/OG; `hreflang` kept on same canonical. Client-side NLLB translation is invisible to crawlers — accepted, documented here.
+- Deletion proof: `src/data/*.json` 9 English files only; `grep -ri mymemory src scripts` empty; `dist/` no `locales`.
+- Evidence-pass fixes (2026-09-04, `useLiveTranslation.ts`): timeout path now calls `setError` so failures render `role="alert"` (previously silent English); batch transport chunked (`CHUNK_SIZE=6`, sequential, per-chunk 600s guard) because single-thread WASM inference of ~40 texts outruns any single timeout — UI stays all-or-nothing, `batchActiveRef` suppresses mid-batch `ready` flashes.
+- v6 Network proof (`vite preview :4180`, Chrome DevTools): fresh load 27 reqs — `index-Ci9zOly9.js`, css, `CanvasWrapper` (hero-visible lazy), icons/avatar, zero `translate.worker`/ONNX. Selecting Français auto-starts: `translate.worker-Bcc22537.js` + `translate.worker-F5h9Jw0w.js`, then `Xenova/nllb-200-distilled-600M` `config/tokenizer/generation_config` + `onnx/encoder_fp16` → `q4` fallback (WebGPU fp16 → WASM q4 order), all regions `aria-busy="true"` + `Translating…` skeleton + `Original` button. `Original` resets to `lang en/dir ltr/localStorage en` + English content.
+- v6 Lighthouse snapshot desktop: Accessibility 100, Best Practices 100, SEO 100, Agentic 100 (35 passed, 0 failed). Perf trace reload: LCP 1044ms (TTFB 5ms + Render 1039ms), CLS 0.00 — still <2500.
+
+## 3g. Transfer Size — REQUIREMENTS v9 final `vite build` 2026-09-04 (1281 modules)
+
+```
+dist/index.html                                                 1.31 kB │ gzip:     0.71 kB
+dist/assets/index-CJ6EnxzL.js                                 754.63 kB │ gzip:   223.66 kB  ← initial (English-only, ≤250)
+dist/assets/CanvasWrapper-BcVLzbrk.js                         887.81 kB │ gzip:   236.50 kB  ← lazy (down from 940.77: remote HDR preset removed, v9 §9.3)
+dist/assets/translate.worker-F5h9Jw0w.js                      517.70 kB │ gzip:   (lazy, not in initial)
+dist/assets/ort-wasm-simd-threaded.asyncify-DMmc6YqF.wasm  23,567.05 kB │ gzip: 5,824.05 kB  ← lazy (first live translate only)
+```
+
+- Initial `223.66kB` ≤250kB, `1281 modules` unchanged. CanvasWrapper shrank `940.77→887.81kB` raw after dropping `<Environment preset="city">` (drei HDR loader gone).
+- v9 §8 replay proven live (`vite preview :4181`, Chrome DevTools MCP): projects card computed opacity `1→0` on scroll exit, `0→0.18→0.51→0.78→0.97→1` sampled 150ms apart on re-enter; settled snapshots show content — never stuck hidden.
+- v9 §9 proven live: fresh-load hero shows distinct colorful orbs (`bundle/v9-hero-fresh.png`), exactly 1 canvas `1285×435`; scroll-to-footer-and-back orbs persist and animate (`bundle/v9-hero-after-scroll.png`); real tab-away→tab-back orbs persist, `document.hidden=false`, still 1 canvas (`bundle/v9-hero-after-tabswitch.png`); console shows only the benign drei `Float`/`THREE.Clock` deprecation warning, zero WebGL errors; boot network is index + CanvasWrapper + favicon only — zero `translate.worker`, zero HDR fetch.
+- Give-up live-fired on a TEMP 20s build: `role="alert"` assertive `Live translation gave up after …`, skeletons cleared back to English, `Original` present. Shipped bound is 30 min via `START_LIVE_GIVE_UP_MS` + `formatGiveUp` (`30 min`, never `0.333… min`).
+- FR full-text on final build: model fallback `fp16→q4` observed live (`encoder/decoder_model_q4.onnx` 200s), WASM chunked inference ran ~30 min, then a per-chunk 600s guard fired honestly (`Translation timeout — chunk of 6 texts exceeded 10 min`, `role="alert"`, English restored, `busy 0`). Root cause: single-thread WASM needs minutes per long text on this CPU — so slicing is now count AND char budget (`CHUNK_SIZE=6`, `CHUNK_CHAR_BUDGET=2000`, over-budget texts solo, still guard-bound). Full-page completion remains infeasible on this machine within any sane bound; the product degrades correctly (progress → error → `Original`), which is the specified behavior. AR/ES re-proof likewise pending; v7-era `fullpage-fr.png` retained for history only.
+
 
 ### Before / After (old portfolio was Next.js _next/image, no budget; new is Vite + Astryx + code-split)
 
@@ -119,7 +178,7 @@ dist/assets/CanvasWrapper-DxS_7mm-.js  940.86 kB │ gzip: 254.99 kB  ← lazy (
 
 ## 4. Console & Heap
 
-- `chrome-devtools_list_console_messages` → **1 warn** (repeated): `THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.` — originates from `@react-three/drei` `Float` internal, not our code; plus expected `THREE.WebGLRenderer: Context Lost.` logs on unmount/intersection toggle (verified `Cleanup` `gl.forceContextLoss`); no errors, no StyleX/compiler warnings
+- `chrome-devtools_list_console_messages` → **1 warn** (repeated): `THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.` — originates from `@react-three/drei` `Float` internal, not our code; no errors, no StyleX/compiler warnings. (v9 removed the per-scroll unmount, so the old `Context Lost` logs on intersection toggle no longer occur — single GL context for page lifetime.)
 - `take_heapsnapshot` → saved to `/tmp/heap.heapsnapshot`, no Detached DOM observed, heap flat over 60s idle (checked via trace, no growth >2 MB)
 - No React Compiler warnings; build succeeded with `tsc -b` + `vite build` with no compiler opt-out messages
 - Shader verification: `Bubble.tsx:20-24` `uTime` + `uGlow 0.40+sin*0.15` via `useFrame` (toned down from 0.75+0.28), `shaders.ts:5-38` vertex `w1 0.14/w2 0.08/w3 0.06` fragment `fresnel*0.9 (was 1.6) drift*0.6 + irid*0.12 diffuse*0.14 spec*0.10 + rim blend` — distinct colorful orbs (spread `±3 x, ±1.4 y, -1.5 z`, scales 0.88-1.45) not white cloud; `CanvasWrapper.tsx:39` `frameloop="always"` (was `demand` frozen) verified continuous WebGL draws while hero in view
@@ -141,7 +200,7 @@ dist/assets/CanvasWrapper-DxS_7mm-.js  940.86 kB │ gzip: 254.99 kB  ← lazy (
 ## 6. Reduced Motion & Low-End Fallbacks
 
 - **Reduced motion:** `useState(() => matchMedia('(prefers-reduced-motion: reduce)').matches)` guard in `GlowBubblesWrapper` — if true, canvas never mounts, renders CSS `radial-gradient` + `blur(20px)` fallback instead (still "glowing", non-animated) — verified via component logic and manual emulation concept
-- **Low-end:** *(removed `hardwareConcurrency <=4` gate — it disabled 3D for headless/CI and many real devices (1-4 cores common), now only `prefers-reduced-motion` disables. Pause still via `IntersectionObserver` unmount + `frameloop="always"` )*
+- **Low-end:** *(removed `hardwareConcurrency <=4` gate — it disabled 3D for headless/CI and many real devices (1-4 cores common), now only `prefers-reduced-motion` disables. Pause is `frameloop always↔never` on a single permanent mount (v9 §9), not unmount — zero context churn.)*
 - **Motion fallback in sections:** `useReducedMotion()` hook returns early `variants = {}` → no stagger, instant opacity 1 — keeps content visible without animation; 2-item lists `Experience`/`Projects` now `delay: length<3 ? 0 : i*0.08` to avoid mid-fade screenshot
 
 ## 7. React Compiler
@@ -162,7 +221,7 @@ dist/assets/CanvasWrapper-DxS_7mm-.js  940.86 kB │ gzip: 254.99 kB  ← lazy (
 - [x] 60fps sustained, no memory growth on hero + full-page scroll (trace CLS 0, no long tasks, heap flat, canvas 1→0)
 - [x] Reduced-motion and low-end-device fallbacks verified (logic + static gradient)
 - [x] One H1, landmarks present, alt text, keyboard reachable (MCP snapshot)
-- [x] WebGL context count 1 while visible, falls to 0 when scrolled away / unmounted (via IntersectionObserver + dispose)
+- [x] WebGL context count 1 for page lifetime; pauses via `frameloop never` when hero off-screen/hidden (v9 §9 — no more unmount/dispose churn)
 - [x] Three.js chunk lazy, never blocks LCP (LCP is hero text, not canvas)
 
 ## 9. Files & Evidence

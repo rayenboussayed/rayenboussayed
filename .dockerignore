@@ -1,0 +1,13 @@
+node_modules
+dist
+dist-ssr
+.git
+.gitignore
+logs
+*.log
+npm-debug.log*
+bundle
+coverage
+.vscode
+.idea
+.DS_Store

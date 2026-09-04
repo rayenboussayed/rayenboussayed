@@ -1,0 +1,17 @@
+# Dev-only compose (REQUIREMENTS v9 To-close-5): Vite dev server with HMR.
+# Usage: npm run docker:dev | npm run docker:logs | npm run docker:down
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      # Reliable file watching through bind mounts.
+      - CHOKIDAR_USEPOLLING=true
+    stdin_open: true
+    tty: true

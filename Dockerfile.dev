@@ -1,0 +1,15 @@
+# Dev-only image (REQUIREMENTS v9 To-close-5). Never used for production builds.
+FROM node:22-alpine
+
+WORKDIR /app
+
+# Install deps first for better layer caching.
+COPY package.json package-lock.json ./
+RUN npm install
+
+# Source is bind-mounted by docker-compose.dev.yml; COPY is only a fallback.
+COPY . .
+
+EXPOSE 5173
+
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5173"]

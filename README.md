@@ -38,7 +38,7 @@ import { y2kTheme } from '@astryxdesign/theme-y2k'
 export const softPopTheme = defineTheme({ name:'soft-pop', extends: y2kTheme, tokens:{'--border-width':'3px','--shadow-med':'6px 6px 0px rgba(0,0,0,0.9)'}, components:{card:{base:{borderWidth:'3px'}}, button:{'variant:primary':{boxShadow:'var(--shadow-med)'}}} })
 ```
 
-Preview theme: `npm run dev` shows soft-pop. For built artifacts: `npm run astryx -- theme build ./src/theme/softPopTheme.ts` → `softPopTheme.css/js/d.ts`.
+Preview theme: `npm run dev` shows soft-pop. For built artifacts: `npm run astryx -- theme build ./src/theme/softPopTheme.ts` → `soft-pop.css/js/d.ts` (built, `__built:true`). App imports `from './theme/soft-pop'` + `import './theme/soft-pop.css'` for first-paint.
 
 See `PLAN.md:D` for token table and `https://astryx.atmeta.com/docs/theme`.
 

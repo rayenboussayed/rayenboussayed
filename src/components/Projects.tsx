@@ -5,16 +5,28 @@ import { Badge } from '@astryxdesign/core/Badge'
 import { Button } from '@astryxdesign/core/Button'
 import { Section } from '@astryxdesign/core/Section'
 import { motion, useReducedMotion, useScroll, useTransform } from 'motion/react'
-import { projects, ui } from '../lib/content'
+import { useContentWithLive as useContent } from '../context/LiveTranslationContext'
+import { TextSkeleton } from './TextSkeleton'
 
 /**
  * Projects — cards with tags (Badge) and CTA, hover tilt + scroll reveal.
  * Tilt uses rotateX/Y + transformPerspective per PLAN.md:206.
+ * Live: skeleton while translating (no stale English flash, `aria-busy`).
  */
 export function Projects() {
+  const { projects, ui, isTranslating } = useContent()
   const reduce = useReducedMotion()
   const { scrollYProgress } = useScroll()
   const parallaxY = useTransform(scrollYProgress, [0, 1], [0, -28])
+  if (isTranslating) {
+    return (
+      // @ts-ignore — id/aria
+      <Section role="region" id="projects" aria-labelledby="projects-heading" aria-busy="true" padding={6} variant="section">
+        <Heading level={2} id="projects-heading" style={{ fontWeight: 800 }}>{ui.live.translating}</Heading>
+        <TextSkeleton lines={4} label={ui.live.translating} />
+      </Section>
+    )
+  }
   return (
     // @ts-ignore — id/aria
     <Section role="region" id="projects" aria-labelledby="projects-heading" padding={6} variant="section">
@@ -26,7 +38,8 @@ export function Projects() {
             key={p.id}
             initial={reduce ? false : { opacity: 0, y: 24 }}
             whileInView={reduce ? undefined : { opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.2 }}
+            // v9 §8: replay on every re-enter, both scroll directions
+            viewport={{ once: false, amount: 0.2 }}
             // No stagger for 2-item list — prevents second card mid-fade in screenshots/fast scroll
             transition={{ duration: 0.6, delay: projects.length < 3 ? 0 : i * 0.08, ease: 'easeOut' }}
             whileHover={reduce ? undefined : { y: -6, rotateX: 2, rotateY: -2 } as never}

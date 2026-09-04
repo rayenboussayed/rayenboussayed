@@ -39,3 +39,32 @@ body {
   border-bottom: 3px solid var(--color-border);
   box-shadow: 0 4px 0 var(--color-border);
 }
+
+/* RTL: mirror hard offset shadows so pink drop-shadow stays visually "behind" */
+[dir='rtl'] {
+  --shadow-med: -6px 6px 0px rgba(0, 0, 0, 0.9);
+  --soft-pop-shadow: -6px 6px 0px var(--color-border);
+  --soft-pop-shadow-pill: -4px 4px 0px var(--color-border);
+}
+[dir='rtl'] .soft-pop-card {
+  box-shadow: -6px 6px 0px rgba(0, 0, 0, 0.9) !important;
+}
+[dir='rtl'] .soft-pop-pill {
+  box-shadow: -4px 4px 0px var(--color-border) !important;
+}
+
+/* Print: hide decorative canvas/animations, flatten to readable text */
+@media print {
+  canvas,
+  [aria-hidden='true'] {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  .soft-pop-card {
+    box-shadow: none !important;
+    border: 1px solid #999 !important;
+  }
+}
