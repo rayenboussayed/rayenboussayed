@@ -41,6 +41,14 @@ const CHUNK_CHAR_BUDGET = 2000
 const CHUNK_TIMEOUT_MS = 600_000
 
 /**
+ * Clamp a worker progress reading to a displayable 0–100 int.
+ * Pure — exported for unit tests (REQUIREMENTS v13).
+ */
+export function capProgress(p: number): number {
+  return Math.min(100, Math.max(0, Math.round(p)))
+}
+
+/**
  * Next worker slice from `start`: at most `CHUNK_SIZE` texts and
  * `CHUNK_CHAR_BUDGET` chars. A single over-budget text travels solo
  * (still guard-bound). Pure — exported for unit tests (REQUIREMENTS v13).
@@ -119,10 +127,10 @@ export function useLiveTranslation() {
               sumTotal += v.total
             }
             const overall = sumTotal > 0 ? Math.round((sumLoaded / sumTotal) * 100) : Math.round((d.progress as number) ?? 0)
-            setProgress(Math.min(100, overall))
+            setProgress(capProgress(overall))
           } else {
             const p = typeof d.progress === 'number' ? (d.progress as number) : 0
-            setProgress(Math.round(p))
+            setProgress(capProgress(p))
           }
           setProgressInfo(d as ProgressInfo)
         } else if (d.type === 'ready') {
