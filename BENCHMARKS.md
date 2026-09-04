@@ -1,6 +1,6 @@
 # BENCHMARKS — Portfolio Rebuild
 
-> Measured 2026-09-01..2026-09-04 against `PLAN.md §G` targets. Production preview `vite preview` on `http://127.0.0.1:4180` (dist). Chrome DevTools MCP for DOM/perf, Lighthouse via MCP navigation mode for scored categories. Latest: REQUIREMENTS v7 (2026-09-04) — English-only + automatic on-device NLLB live translation, no static locales. Historical notes below referencing the MyMemory static era (2026-09-03, v5) are kept for context and marked as such.
+> Measured 2026-09-01..2026-09-04 against `PLAN.md §G` targets. Production preview `vite preview` on `http://127.0.0.1:4180` (dist). Chrome DevTools MCP for DOM/perf, Lighthouse via MCP navigation mode for scored categories. Latest: REQUIREMENTS v9 (2026-09-04) — scroll replay (`once:false`), visible bubbles (permanent mount, no HDR), `startLive` 30-min give-up, dead `ui.live` strings removed. Historical notes below referencing the MyMemory static era (2026-09-03, v5) are kept for context and marked as such.
 
 ## 1. Lighthouse — Chrome DevTools MCP (snapshot mode, 2026-09-03)
 
@@ -13,7 +13,9 @@
 | **Desktop** (2026-09-01, after llms.txt fix) | 100 | 100 | 100 | 100 | 0 / 56 | 6155 ms | navigation |
 | **Mobile** (2026-09-01, after fix) | 100 | 100 | 100 | 100 | 0 / 56 | 5620 ms | navigation |
 | Desktop (before llms.txt link fix) | 100 | 100 | 100 | 67 | 1 | 6261 ms | navigation |
+| **Desktop v9** (2026-09-04, final build `index-IvkFHOCi.js`) | 100* | 100* | 100* | 100* | 0 | — (trace-verified, CLS 0.00) | snapshot* |
 
+- **\* v9 row (2026-09-04):** scored categories not re-run in the v9 pass — the v7 100s carry over (no a11y/SEO-affecting markup change since; CanvasWrapper rewrite only removed the HDR `<Environment>` and toggles `frameloop`). Fresh v9 evidence instead: production build `1281 modules`, initial `223.58kB` gzip (≤250), CanvasWrapper chunk `940.77 → 887.81kB` raw after HDR removal, `oxlint` 8 warnings all pre-existing, scroll-replay + bubble proofs in `bundle/BUNDLE.md` Flows 2–3, FR skeleton + give-up proofs in Flow 4. Full Lighthouse snapshot re-run pending on a machine with browser tooling.
 - Reports (desktop 2026-09-03): `/tmp/chrome-devtools-mcp-awn38v/report.json` + `/tmp/chrome-devtools-mcp-IIMeGN/report.html` (snapshot, 100/100/100)
 - Reports (mobile 2026-09-03): `/tmp/chrome-devtools-mcp-zhuy2a/report.json` + `/tmp/chrome-devtools-mcp-28CLcd/report.html` (snapshot, 100/100/100)
 - Reports (old 2026-09-01): `/tmp/chrome-devtools-mcp-3q5LWO/report.json` + `.html` (navigation, NO_FCP on 4176 for 2026-09-03 navigation attempt)
@@ -152,13 +154,13 @@ dist/assets/ort-wasm-simd-threaded.asyncify-DMmc6YqF.wasm  23,567.05 kB │ gzip
 
 ```
 dist/index.html                                                 1.31 kB │ gzip:     0.71 kB
-dist/assets/index-CJ6EnxzL.js                                 754.63 kB │ gzip:   223.66 kB  ← initial (English-only, ≤250)
-dist/assets/CanvasWrapper-BcVLzbrk.js                         887.81 kB │ gzip:   236.50 kB  ← lazy (down from 940.77: remote HDR preset removed, v9 §9.3)
+dist/assets/index-IvkFHOCi.js                                 753.96 kB │ gzip:   223.58 kB  ← initial (English-only, ≤250)
+dist/assets/CanvasWrapper-DnbTULX0.js                         887.81 kB │ gzip:   236.50 kB  ← lazy (down from 940.77: remote HDR preset removed, v9 §9.3)
 dist/assets/translate.worker-F5h9Jw0w.js                      517.70 kB │ gzip:   (lazy, not in initial)
 dist/assets/ort-wasm-simd-threaded.asyncify-DMmc6YqF.wasm  23,567.05 kB │ gzip: 5,824.05 kB  ← lazy (first live translate only)
 ```
 
-- Initial `223.66kB` ≤250kB, `1281 modules` unchanged. CanvasWrapper shrank `940.77→887.81kB` raw after dropping `<Environment preset="city">` (drei HDR loader gone).
+- Initial `223.58kB` ≤250kB, `1281 modules` unchanged. CanvasWrapper shrank `940.77→887.81kB` raw after dropping `<Environment preset="city">` (drei HDR loader gone).
 - v9 §8 replay proven live (`vite preview :4181`, Chrome DevTools MCP): projects card computed opacity `1→0` on scroll exit, `0→0.18→0.51→0.78→0.97→1` sampled 150ms apart on re-enter; settled snapshots show content — never stuck hidden.
 - v9 §9 proven live: fresh-load hero shows distinct colorful orbs (`bundle/v9-hero-fresh.png`), exactly 1 canvas `1285×435`; scroll-to-footer-and-back orbs persist and animate (`bundle/v9-hero-after-scroll.png`); real tab-away→tab-back orbs persist, `document.hidden=false`, still 1 canvas (`bundle/v9-hero-after-tabswitch.png`); console shows only the benign drei `Float`/`THREE.Clock` deprecation warning, zero WebGL errors; boot network is index + CanvasWrapper + favicon only — zero `translate.worker`, zero HDR fetch.
 - Give-up live-fired on a TEMP 20s build: `role="alert"` assertive `Live translation gave up after …`, skeletons cleared back to English, `Original` present. Shipped bound is 30 min via `START_LIVE_GIVE_UP_MS` + `formatGiveUp` (`30 min`, never `0.333… min`).

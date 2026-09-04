@@ -1,28 +1,18 @@
-# REQUIREMENTS v9 — Bidirectional scroll motion + visible bubbles
+# REQUIREMENTS v10 — v9 close-out amendments + carried proofs
 
-Supersedes v8. Owner direction change on two points that v5–v8 had locked the other way. Everything else in v8 stands (translation §§1–6 verified live; Lighthouse snapshot 100s; CLS 0.00).
+Supersedes v9. §§1–9 stand as implemented and committed (`ce67bc4`): scroll replay (`once:false` ×4), visible bubbles (permanent mount, `frameloop` toggle, HDR removed), `START_LIVE_GIVE_UP_MS = 30min` + per-chunk 600s guard, Docker dev files, regenerated `bundle/BUNDLE.md`.
 
-## 8. Scroll motion replays in both directions (replaces v5/v7 `once:true` rule)
+## 10. Amendments found in the v10 review pass
 
-- **Old rule (retired):** `viewport={{ once: true, amount: 0.2 }}` in `Skills.tsx:39`, `Experience.tsx:35`, `About.tsx:36`, `Projects.tsx:41`. It fires once and never replays — scrolling back up and down again shows no animation. That was chosen to avoid re-hide confusing screenshots; the owner now explicitly wants replay.
-- **New rule:** `viewport={{ once: false, amount: 0.2 }}` on all four scroll sections, so cards animate out on exit and back in on every re-enter, scrolling up or down.
-- Keep: reduced-motion guards (`initial={reduce ? false …}`), no stagger for 2-item lists (`Experience`, `Projects` delay 0), transform+opacity only (CLS-safe, trace-verified 0.00), `duration 0.6 easeOut`.
-- Verify live: scroll top→bottom→top via Chrome MCP; each section must visibly re-animate on both passes; snapshot shows content (never stuck hidden); CLS stays 0.00.
-
-## 9. 3D bubbles must be visible (regression)
-
-- Symptom: hero shows no bubbles. Three candidate causes found in source, all must be closed:
-  1. **Tab-switch kill bug** (`CanvasWrapper.tsx:78`): `onVis` sets `visible=false` when `document.hidden`, but on return `v` is already `false` so it stays `false` forever — canvas never remounts after any tab switch. Must restore (re-check intersection / set true) on `visibilitychange` to visible.
-  2. **Scroll-away unmount + forced context loss** (`CanvasWrapper.tsx:73-76` + `Cleanup` `gl.dispose()`/`forceContextLoss()`): every hero exit destroys the GL context and every re-enter creates a new one — repeated scrolling risks context exhaustion and missing orbs. Canvas must reliably reappear when the hero re-enters; cap churn (e.g. keep mounted while page visible, pause via `frameloop` demand/`invalidate` instead of unmount, or guard context count).
-  3. **Remote HDR dependency** (`<Environment preset="city" />`, `CanvasWrapper.tsx:49`): suspends on an external CDN fetch (`raw.githack`→`githubusercontent`, seen 301→304 live). If that fetch fails/hangs, the canvas can stay blank. Must not depend on it for visibility — error boundary, local fallback, or drop the preset.
-- Keep: `frameloop="always"`→(or equivalent that keeps orbs animating while visible), `dpr [1,2]`, `React.lazy` + `Suspense` gradient fallback, no `hardwareConcurrency` gate, reduced-motion gradient fallback.
-- Verify live: fresh-load hero screenshot shows distinct colorful orbs; scroll to footer and back → orbs still there; switch tab away and back → orbs still there; console shows no WebGL errors; `canvasCount` is 1 while hero intersecting.
+1. **Dead `ui.live` strings removed** (owner-approved): `cta`, `downloading`, `dataSaver`, `liveTooltip` were defined in `src/data/ui.json` + `src/types/content.ts` (schema + defaults) but never read — the code uses `downloadingDetail`, `dataSaverBanner`, `originalTooltip` throughout (`TopNav.tsx:60,71,81`). Removed from all three places; `src/data/README.md` key list updated to match. ⚠️ Zod schema changed — `npm run build` (`tsc -b`) MUST pass before commit (not yet run: no shell in the editing session).
+2. **`BENCHMARKS.md` bumped to v9** (owner-approved minimal bump): header now cites v9; new v9 row records final-build numbers (`1281 modules`, initial `223.58kB` gzip, CanvasWrapper `887.81kB` raw, oxlint 8 pre-existing warnings). Scored Lighthouse categories were NOT re-run in v9 — v7 snapshot 100s carry over, marked `*` with reason (no a11y/SEO-affecting markup change since v7). Full snapshot re-run pending on a machine with browser tooling.
+3. **Docker landed under policy exception:** `Dockerfile.dev`, `docker-compose.dev.yml`, `.dockerignore`, and `docker:dev/logs/down` scripts exist and are committed, even though `opencode.jsonc` `edit` rules still deny `Dockerfile*`/`docker-compose*`/`package.json`. Rule for agents: these files are **owner-maintained, read-only** — never edit via tooling; propose changes in chat. `docker:dev` smoke test still pending (daemon unreachable in sandbox; `docker ps` → permission denied).
+4. **Completion proofs carried, not closed** (owner-approved): full FR translated-text screenshot, AR RTL + ES re-proof on the v9 build. Reason: cold-cache download + single-thread WASM inference exceeded the honest 600s chunk guard on this machine (`Translation timeout — chunk of 6 texts exceeded 10 min`, English restored). Degradation path (progress → error → `Original`) is proven; completion is not.
+5. **Session limitation on record:** the session performing these file edits had no browser/MCP invocation tool and no shell access — fresh screenshots, Lighthouse, `npm run build/lint`, and the commit itself are all pending operator action.
 
 ## 🔴 To close (updated)
 
-1. **§8 implementation:** flip the four `viewport` props to `once:false`, re-run the real scroll-through (down + up) with screenshots.
-2. **§9 implementation:** fix tab-restore, remount churn, HDR dependency; verify with the three visibility proofs above.
-3. **Give-up timeout** (v8, still open): `startLive` needs a bounded give-up surfacing `status:'error'` + `Original`.
-4. **Stale docs:** regenerate `bundle/BUNDLE.md` for the current flow (EN boot → FR skeleton → translated text; AR RTL + ES; `Original`; scroll down+up; bubbles visible in hero shots).
-5. **Dev server Docker:** repo write policy still denies `Dockerfile*`/`docker-compose*.yml`/`package.json` — create `Dockerfile.dev`, `docker-compose.dev.yml`, `docker:dev`/`docker:logs`/`docker:down` scripts manually (spec in v8 §To-close-4); `.dockerignore` already landed.
-6. **Commit:** v6–v9 work uncommitted — commit source + benchmarks + regenerated bundle together.
+1. **Validate + commit:** run `npm run build` (validates the zod change), `npm run lint`, then commit source + `BENCHMARKS.md` + v10 together.
+2. **Pending proofs (§10.4):** full FR completion shot; AR RTL + ES re-proof — needs a faster machine or warm model cache.
+3. **Lighthouse re-run:** snapshot mode on the final build to replace the `*` carry-over row.
+4. **Docker smoke test:** `npm run docker:dev` / `:logs` / `:down` on a Docker host.

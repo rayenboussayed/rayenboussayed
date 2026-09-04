@@ -103,17 +103,13 @@ export const uiCommonSchema = z.object({
 export type UiCommon = z.infer<typeof uiCommonSchema>
 
 export const uiLiveSchema = z.object({
-  cta: z.string().default('Live AI Translate'),
-  downloading: z.string().default('Downloading model — {progress}%'),
   translating: z.string().default('Translating…'),
   machineTranslated: z.string().default('Machine-translated'),
   original: z.string().default('Original'),
   downloadingDetail: z.string().default('Downloading translation model — {progress}% (on-device AI, may take a moment — cached after first use)'),
-  dataSaver: z.string().default('Data-saver is on — model is several hundred MB'),
   dataSaverBanner: z.string().default('Data-saver is on — model is several hundred MB, download starts because you picked a language'),
   errorPrefix: z.string().default('Live translation error:'),
   bannerDesc: z.string().default('This content was translated on-device with NLLB (q4/q8→fp32, WASM/WebGPU cached). Original English is kept for SEO. Switch language via picker or click Original.'),
-  liveTooltip: z.string().default('On-device AI (NLLB 600M q4/q8→fp32, WASM/WebGPU cached)'),
   originalTooltip: z.string().default('Show original English'),
 })
 export type UiLive = z.infer<typeof uiLiveSchema>
@@ -138,17 +134,13 @@ export const uiSchema = z.object({
     languageChangedTo: 'Language changed to',
   }),
   live: uiLiveSchema.default({
-    cta: 'Live AI Translate',
-    downloading: 'Downloading model — {progress}%',
     translating: 'Translating…',
     machineTranslated: 'Machine-translated',
     original: 'Original',
     downloadingDetail: 'Downloading translation model — {progress}% (on-device AI, may take a moment — cached after first use)',
-    dataSaver: 'Data-saver is on — model is several hundred MB',
     dataSaverBanner: 'Data-saver is on — model is several hundred MB, download starts because you picked a language',
     errorPrefix: 'Live translation error:',
     bannerDesc: 'This content was translated on-device with NLLB (q4/q8→fp32, WASM/WebGPU cached). Original English is kept for SEO. Switch language via picker or click Original.',
-    liveTooltip: 'On-device AI (NLLB 600M q4/q8→fp32, WASM/WebGPU cached)',
     originalTooltip: 'Show original English',
   }),
 })

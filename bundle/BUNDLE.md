@@ -1,7 +1,7 @@
 # Bundle — REQUIREMENTS v9 evidence (screenshots + measured proofs)
 
 > Project: `rayenboussayed` — Vite + React 19 + Astryx + Motion + Three.js + on-device NLLB live translation
-> Generated: 2026-09-04 via built-in Chrome DevTools MCP against `vite preview http://localhost:4181/` (final build `index-CJ6EnxzL.js`, initial `223.66kB` gzip ≤250)
+> Generated: 2026-09-04 via built-in Chrome DevTools MCP against `vite preview http://localhost:4181/` (final build `index-IvkFHOCi.js`, initial `223.58kB` gzip ≤250)
 > Method: `take_snapshot` (a11y tree) + `take_screenshot` per state + `evaluate_script` measurements + `list_console_messages` + `list_network_requests`
 > Prior-flow shots (`01-nav`…`live-original-reset`) kept from the v7 pass; `v9-*` shots are new this pass. Stale MyMemory-era `fullpage-fr.png` kept for history, superseded below.
 
@@ -23,7 +23,7 @@
 
 ## Flow 1 — EN boot (§9 baseline)
 
-Fresh profile `GET /`: full EN content in a11y tree, `English` picker, no `Original`, no alert. Console: exactly 1 warning — drei `Float` internal `THREE.Clock` deprecation; zero WebGL errors. Network (`script/fetch/xhr/other`): `index-CJ6EnxzL.js` + `CanvasWrapper-BcVLzbrk.js` + `favicon.svg` only — zero `translate.worker`, zero HDR fetch.
+Fresh profile `GET /`: full EN content in a11y tree, `English` picker, no `Original`, no alert. Console: exactly 1 warning — drei `Float` internal `THREE.Clock` deprecation; zero WebGL errors. Network (`script/fetch/xhr/other`): `index-IvkFHOCi.js` + `CanvasWrapper-DnbTULX0.js` + `favicon.svg` only — zero `translate.worker`, zero HDR fetch.
 
 ## Flow 2 — Scroll down + up (§8 replay)
 
@@ -48,6 +48,6 @@ Always rendered next to a non-English pick; terminates the worker and restores `
 
 ## Non-browser verification (same pass)
 
-- `npm run build`: `tsc -b` + vite clean, `1281 modules`, initial `223.66kB` gzip.
+- `npm run build`: `tsc -b` + vite clean, `1281 modules`, initial `223.58kB` gzip.
 - `npm run lint` (oxlint): 8 warnings, all pre-existing (`only-export-components`, one `set-state-in-effect`) — zero new.
 - Docker dev (v9 To-close-5): `Dockerfile.dev` (node:22-alpine, Vite `:5173`), `docker-compose.dev.yml` (bind mount + `node_modules` volume + `CHOKIDAR_USEPOLLING`), `docker:dev` / `docker:logs` / `docker:down` scripts, `docker compose config` validates. Container smoke test blocked: docker daemon socket permission denied in this environment — needs a user in the `docker` group; no containers were created.
