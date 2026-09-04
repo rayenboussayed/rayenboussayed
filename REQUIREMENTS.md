@@ -1,24 +1,18 @@
-# REQUIREMENTS v11 — compose removed, Dockerfile.dev only
+# REQUIREMENTS v12 — v11 owner ops verified, close-out carried
 
-Supersedes v10. §§1–10 stand (translation §§1–6, scroll replay §8, visible bubbles §9, give-up bound, dead-string cleanup, benchmark bump — all implemented; v10 file edits validated this session, see §11.1).
+Supersedes v11. §§1–11 stand (translation §§1–6, scroll replay §8, visible bubbles §9, give-up bound, dead-string cleanup, benchmark bump, compose removal — all implemented; v10 edits validated by green build + lint).
 
-## 11. Docker simplification (owner direction)
+## 12. v11 To-close-1 verified closed (review pass)
 
-1. **Validated v10 edits this session:** `npm run build` green (`tsc -b` + vite, 4.98s, `check-assets` prebuild clean) — the zod `ui.live` trim is schema-valid. Fresh `dist` reproduces the recorded numbers exactly (`index-IvkFHOCi.js`, initial `223.58kB` gzip, `CanvasWrapper-DnbTULX0.js` `887.81kB` raw). `npm run lint`: same 8 pre-existing warnings, zero new. Docs already in sync (no doc edit needed for the rebuild).
-2. **`docker-compose.dev.yml` removed** — single `Dockerfile.dev` is the only container definition. Compose added nothing (one service, no networks/volumes naming needs) and doubled the files to maintain.
-3. **`package.json` `docker:*` scripts go plain-docker** (owner edit — agent paths deny `package.json`):
-   - `docker:dev`: `docker build -f Dockerfile.dev -t rayenboussayed-dev . && docker run --rm --name rayenboussayed-dev -p 5173:5173 -v .:/app -v /app/node_modules -e CHOKIDAR_USEPOLLING=true -it rayenboussayed-dev`
-   - `docker:logs`: `docker logs -f rayenboussayed-dev`
-   - `docker:down`: `docker stop rayenboussayed-dev`
-   
-   Same behavior as compose (HMR bind mount, anonymous `node_modules` volume, polling watch, `:5173`); `--name` gives `logs`/`down` a stable handle; `--rm` keeps `down` equivalent to `compose down` (no orphans).
-4. **`Dockerfile.dev:10` comment reword** (owner edit — agent paths deny `Dockerfile*`): bind-mount now comes from the `docker run -v` flags, not compose; `COPY . .` stays fallback.
-5. **`bundle/BUNDLE.md:53` rewritten** to Dockerfile-only wording (done, history preserved).
-6. **Policy standing:** `Dockerfile.dev` / `package.json` remain owner-maintained, agent read-only. `docker-compose*.yml` deny rule stays (now Guards against re-adding it).
+1. **`docker-compose.dev.yml` deleted** — read fails, file gone from tree.
+2. **`package.json:14-16` plain-docker scripts** verified exact against §11.3 (`docker build -f Dockerfile.dev -t rayenboussayed-dev . && docker run --rm --name rayenboussayed-dev -p 5173:5173 -v .:/app -v /app/node_modules -e CHOKIDAR_USEPOLLING=true -it rayenboussayed-dev` / `docker logs -f rayenboussayed-dev` / `docker stop rayenboussayed-dev`).
+3. **`Dockerfile.dev:10` comment** reworded to the `docker run -v` wording.
+4. **Committed:** `f34c7d8` (v10) + `94c6324` (v11); tree clean at review time.
+5. **Reference sweep:** no live `compose` references remain — only accurate history (`bundle/BUNDLE.md:53` "removed in v11", kept) and v11's own text. The `docker-compose*.yml` edit-deny rule stays as a guard against re-adding it. `Dockerfile.dev` / `package.json` remain owner-maintained, agent read-only.
 
-## 🔴 To close (updated)
+## 🔴 To close (updated — all operator-side)
 
-1. **Owner file ops + commit:** delete `docker-compose.dev.yml`; apply the three `package.json` scripts (§11.3); reword `Dockerfile.dev:10` (§11.4); then commit source + `BENCHMARKS.md` + `BUNDLE.md` + v11 together. (Build/lint already green — no need to re-run unless the tree changes first.)
-2. **Pending proofs (§10.4, carried):** full FR completion shot; AR RTL + ES re-proof — needs a faster machine or warm model cache.
-3. **Lighthouse re-run:** snapshot mode on the final build to replace the `*` carry-over row.
-4. **Docker smoke test:** `npm run docker:dev` / `:logs` / `:down` on a Docker host (daemon unreachable in sandbox).
+1. **Pending proofs (§10.4, carried):** full FR completion shot; AR RTL + ES re-proof — needs a faster machine or warm model cache.
+2. **Lighthouse re-run:** snapshot mode on the final build to replace the `*` carry-over row.
+3. **Docker smoke test:** `npm run docker:dev` / `:logs` / `:down` on a Docker host (daemon unreachable in sandbox).
+4. **Browser verification protocol** (no browser/MCP tool in agent sessions — run where tooling exists): fresh EN boot shot → scroll down+up replay → tab-away/back → FR auto-start skeleton → `Original`; snapshot + CLS + console + network at each step (expected proofs specified in v9 Flows 2–4).
