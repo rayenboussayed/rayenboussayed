@@ -72,6 +72,8 @@ export function useLiveTranslation() {
     if (workerRef.current) {
       setTgtFlores(floresTgt)
       setIsLive(true)
+      // Fresh attempt: a previous run's message must not linger over the retry.
+      setError(null)
       return
     }
     setStatus('loading-model')
@@ -152,6 +154,9 @@ export function useLiveTranslation() {
   const sendChunk = useCallback(
     (w: Worker, chunk: string[], srcFlores: string, tgtFloresArg: string): Promise<string[]> => {
       setStatus('translating')
+      // New attempt supersedes any previous message (else the banner + derived
+      // 'error' status would stick through the whole retry).
+      setError(null)
       const id = ++idRef.current
       return new Promise<string[]>((resolve, reject) => {
         pendingRef.current.set(id, { resolve, reject })
