@@ -47,12 +47,13 @@ const translationCache = new Map<string, string>()
  */
 const START_LIVE_GIVE_UP_MS = 30 * 60_000
 
-/** Human display for the give-up bound ("30 min", "20 sec" — never 0.333… min). */
-function formatGiveUp(ms: number): string {
+/** Human display for the give-up bound ("30 min", "20 sec" — never 0.333… min). Exported for unit tests (REQUIREMENTS v13). */
+export function formatGiveUp(ms: number): string {
   return ms >= 60_000 ? `${Math.round(ms / 60_000)} min` : `${Math.round(ms / 1000)} sec`
 }
 
-function cacheKey(flores: string, source: string): string {
+/** Exported for unit tests (REQUIREMENTS v13). */
+export function cacheKey(flores: string, source: string): string {
   return `${flores}|${source}`
 }
 

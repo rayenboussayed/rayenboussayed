@@ -40,6 +40,24 @@ const CHUNK_CHAR_BUDGET = 2000
 /** Per-chunk guard (600s): surfaces error, no fallback. */
 const CHUNK_TIMEOUT_MS = 600_000
 
+/**
+ * Next worker slice from `start`: at most `CHUNK_SIZE` texts and
+ * `CHUNK_CHAR_BUDGET` chars. A single over-budget text travels solo
+ * (still guard-bound). Pure — exported for unit tests (REQUIREMENTS v13).
+ *
+ * @returns `[chunk, nextStart]` — the slice and where the following one begins.
+ */
+export function sliceChunk(texts: string[], start: number): [chunk: string[], next: number] {
+  let end = start
+  let chars = 0
+  while (end < texts.length && end - start < CHUNK_SIZE && chars + texts[end]!.length <= CHUNK_CHAR_BUDGET) {
+    chars += texts[end]!.length
+    end++
+  }
+  if (end === start) end = start + 1
+  return [texts.slice(start, end), end]
+}
+
 export function useLiveTranslation() {
   const workerRef = useRef<Worker | null>(null)
   const pendingRef = useRef<Map<number, { resolve: (v: string[]) => void; reject: (e: string) => void }>>(new Map())
@@ -188,17 +206,10 @@ export function useLiveTranslation() {
         const out: string[] = []
         let start = 0
         while (start < texts.length) {
-          let end = start
-          let chars = 0
-          while (end < texts.length && end - start < CHUNK_SIZE && chars + texts[end]!.length <= CHUNK_CHAR_BUDGET) {
-            chars += texts[end]!.length
-            end++
-          }
-          // A single over-budget text travels solo (still guard-bound).
-          if (end === start) end = start + 1
+          const [chunk, next] = sliceChunk(texts, start)
           // eslint-disable-next-line no-await-in-loop -- sequential by design (single worker pipe)
-          out.push(...(await sendChunk(w, texts.slice(start, end), srcFlores, tgtFloresArg)))
-          start = end
+          out.push(...(await sendChunk(w, chunk, srcFlores, tgtFloresArg)))
+          start = next
         }
         setStatus('ready')
         return out

@@ -7,6 +7,7 @@
  */
 import { readFileSync, existsSync } from 'node:fs'
 import { resolve, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 const root = resolve(import.meta.dirname, '..')
 const publicDir = join(root, 'public')
@@ -19,7 +20,8 @@ const files = [
   'src/data/seo.json',
 ]
 
-function collectPaths(obj, out) {
+/** Collect /-rooted asset paths (icon/image/avatar/ogImage) — exported for unit tests (REQUIREMENTS v13). */
+export function collectPaths(obj, out) {
   if (!obj || typeof obj !== 'object') return
   if (Array.isArray(obj)) {
     for (const v of obj) collectPaths(v, out)
@@ -35,6 +37,9 @@ function collectPaths(obj, out) {
   }
 }
 
+// Main-guard: importing this module (unit tests, REQUIREMENTS v13) must not
+// run the checker — `process.exit` inside a test process would kill the suite.
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
 let missing = []
 for (const rel of files) {
   const path = join(root, rel)
@@ -63,3 +68,4 @@ if (missing.length) {
 }
 
 console.log(`✓ All ${files.length} JSON asset paths exist under public/`)
+} // main-guard
