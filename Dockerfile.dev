@@ -7,7 +7,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm install
 
-# Source is bind-mounted by docker-compose.dev.yml; COPY is only a fallback.
+# Source is bind-mounted by 'docker run -v' (see docker:dev script); COPY is only a fallback.
 COPY . .
 
 EXPOSE 5173

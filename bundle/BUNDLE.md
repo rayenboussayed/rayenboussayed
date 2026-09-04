@@ -50,4 +50,4 @@ Always rendered next to a non-English pick; terminates the worker and restores `
 
 - `npm run build`: `tsc -b` + vite clean, `1281 modules`, initial `223.58kB` gzip.
 - `npm run lint` (oxlint): 8 warnings, all pre-existing (`only-export-components`, one `set-state-in-effect`) — zero new.
-- Docker dev (v9 To-close-5): `Dockerfile.dev` (node:22-alpine, Vite `:5173`), `docker-compose.dev.yml` (bind mount + `node_modules` volume + `CHOKIDAR_USEPOLLING`), `docker:dev` / `docker:logs` / `docker:down` scripts, `docker compose config` validates. Container smoke test blocked: docker daemon socket permission denied in this environment — needs a user in the `docker` group; no containers were created.
+- Docker dev (v9 To-close-5, superseded by v11): `Dockerfile.dev` (node:22-alpine, Vite `:5173`) + `docker:dev` / `docker:logs` / `docker:down` scripts — `docker-compose.dev.yml` removed in v11, plain-`docker` equivalents instead. Container smoke test blocked: docker daemon socket permission denied in this environment — needs a user in the `docker` group; no containers were created.

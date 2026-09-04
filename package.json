@@ -11,9 +11,9 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "astryx": "node node_modules/@astryxdesign/cli/clients/cli/bin/astryx.mjs",
-    "docker:dev": "docker compose -f docker-compose.dev.yml up --build",
-    "docker:logs": "docker compose -f docker-compose.dev.yml logs -f",
-    "docker:down": "docker compose -f docker-compose.dev.yml down"
+    "docker:dev": "docker build -f Dockerfile.dev -t rayenboussayed-dev . && docker run --rm --name rayenboussayed-dev -p 5173:5173 -v .:/app -v /app/node_modules -e CHOKIDAR_USEPOLLING=true -it rayenboussayed-dev",
+    "docker:logs": "docker logs -f rayenboussayed-dev",
+    "docker:down": "docker stop rayenboussayed-dev"
   },
   "dependencies": {
     "@astryxdesign/cli": "^0.5.2",

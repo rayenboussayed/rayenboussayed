@@ -1,18 +1,24 @@
-# REQUIREMENTS v10 — v9 close-out amendments + carried proofs
+# REQUIREMENTS v11 — compose removed, Dockerfile.dev only
 
-Supersedes v9. §§1–9 stand as implemented and committed (`ce67bc4`): scroll replay (`once:false` ×4), visible bubbles (permanent mount, `frameloop` toggle, HDR removed), `START_LIVE_GIVE_UP_MS = 30min` + per-chunk 600s guard, Docker dev files, regenerated `bundle/BUNDLE.md`.
+Supersedes v10. §§1–10 stand (translation §§1–6, scroll replay §8, visible bubbles §9, give-up bound, dead-string cleanup, benchmark bump — all implemented; v10 file edits validated this session, see §11.1).
 
-## 10. Amendments found in the v10 review pass
+## 11. Docker simplification (owner direction)
 
-1. **Dead `ui.live` strings removed** (owner-approved): `cta`, `downloading`, `dataSaver`, `liveTooltip` were defined in `src/data/ui.json` + `src/types/content.ts` (schema + defaults) but never read — the code uses `downloadingDetail`, `dataSaverBanner`, `originalTooltip` throughout (`TopNav.tsx:60,71,81`). Removed from all three places; `src/data/README.md` key list updated to match. ⚠️ Zod schema changed — `npm run build` (`tsc -b`) MUST pass before commit (not yet run: no shell in the editing session).
-2. **`BENCHMARKS.md` bumped to v9** (owner-approved minimal bump): header now cites v9; new v9 row records final-build numbers (`1281 modules`, initial `223.58kB` gzip, CanvasWrapper `887.81kB` raw, oxlint 8 pre-existing warnings). Scored Lighthouse categories were NOT re-run in v9 — v7 snapshot 100s carry over, marked `*` with reason (no a11y/SEO-affecting markup change since v7). Full snapshot re-run pending on a machine with browser tooling.
-3. **Docker landed under policy exception:** `Dockerfile.dev`, `docker-compose.dev.yml`, `.dockerignore`, and `docker:dev/logs/down` scripts exist and are committed, even though `opencode.jsonc` `edit` rules still deny `Dockerfile*`/`docker-compose*`/`package.json`. Rule for agents: these files are **owner-maintained, read-only** — never edit via tooling; propose changes in chat. `docker:dev` smoke test still pending (daemon unreachable in sandbox; `docker ps` → permission denied).
-4. **Completion proofs carried, not closed** (owner-approved): full FR translated-text screenshot, AR RTL + ES re-proof on the v9 build. Reason: cold-cache download + single-thread WASM inference exceeded the honest 600s chunk guard on this machine (`Translation timeout — chunk of 6 texts exceeded 10 min`, English restored). Degradation path (progress → error → `Original`) is proven; completion is not.
-5. **Session limitation on record:** the session performing these file edits had no browser/MCP invocation tool and no shell access — fresh screenshots, Lighthouse, `npm run build/lint`, and the commit itself are all pending operator action.
+1. **Validated v10 edits this session:** `npm run build` green (`tsc -b` + vite, 4.98s, `check-assets` prebuild clean) — the zod `ui.live` trim is schema-valid. Fresh `dist` reproduces the recorded numbers exactly (`index-IvkFHOCi.js`, initial `223.58kB` gzip, `CanvasWrapper-DnbTULX0.js` `887.81kB` raw). `npm run lint`: same 8 pre-existing warnings, zero new. Docs already in sync (no doc edit needed for the rebuild).
+2. **`docker-compose.dev.yml` removed** — single `Dockerfile.dev` is the only container definition. Compose added nothing (one service, no networks/volumes naming needs) and doubled the files to maintain.
+3. **`package.json` `docker:*` scripts go plain-docker** (owner edit — agent paths deny `package.json`):
+   - `docker:dev`: `docker build -f Dockerfile.dev -t rayenboussayed-dev . && docker run --rm --name rayenboussayed-dev -p 5173:5173 -v .:/app -v /app/node_modules -e CHOKIDAR_USEPOLLING=true -it rayenboussayed-dev`
+   - `docker:logs`: `docker logs -f rayenboussayed-dev`
+   - `docker:down`: `docker stop rayenboussayed-dev`
+   
+   Same behavior as compose (HMR bind mount, anonymous `node_modules` volume, polling watch, `:5173`); `--name` gives `logs`/`down` a stable handle; `--rm` keeps `down` equivalent to `compose down` (no orphans).
+4. **`Dockerfile.dev:10` comment reword** (owner edit — agent paths deny `Dockerfile*`): bind-mount now comes from the `docker run -v` flags, not compose; `COPY . .` stays fallback.
+5. **`bundle/BUNDLE.md:53` rewritten** to Dockerfile-only wording (done, history preserved).
+6. **Policy standing:** `Dockerfile.dev` / `package.json` remain owner-maintained, agent read-only. `docker-compose*.yml` deny rule stays (now Guards against re-adding it).
 
 ## 🔴 To close (updated)
 
-1. **Validate + commit:** run `npm run build` (validates the zod change), `npm run lint`, then commit source + `BENCHMARKS.md` + v10 together.
-2. **Pending proofs (§10.4):** full FR completion shot; AR RTL + ES re-proof — needs a faster machine or warm model cache.
+1. **Owner file ops + commit:** delete `docker-compose.dev.yml`; apply the three `package.json` scripts (§11.3); reword `Dockerfile.dev:10` (§11.4); then commit source + `BENCHMARKS.md` + `BUNDLE.md` + v11 together. (Build/lint already green — no need to re-run unless the tree changes first.)
+2. **Pending proofs (§10.4, carried):** full FR completion shot; AR RTL + ES re-proof — needs a faster machine or warm model cache.
 3. **Lighthouse re-run:** snapshot mode on the final build to replace the `*` carry-over row.
-4. **Docker smoke test:** `npm run docker:dev` / `:logs` / `:down` on a Docker host.
+4. **Docker smoke test:** `npm run docker:dev` / `:logs` / `:down` on a Docker host (daemon unreachable in sandbox).
