@@ -5,31 +5,20 @@ import { Badge } from '@astryxdesign/core/Badge'
 import { Button } from '@astryxdesign/core/Button'
 import { Section } from '@astryxdesign/core/Section'
 import { motion, useReducedMotion, useScroll, useTransform } from 'motion/react'
-import { useContentWithLive as useContent } from '../context/LiveTranslationContext'
-import { TextSkeleton } from './TextSkeleton'
+import { projects, ui } from '../lib/content'
 
 /**
  * Projects — cards with tags (Badge) and CTA, hover tilt + scroll reveal.
  * Tilt uses rotateX/Y + transformPerspective per PLAN.md:206.
- * Live: skeleton while translating (no stale English flash, `aria-busy`).
+ * English-only static content.
  */
 export function Projects() {
-  const { projects, ui, isTranslating } = useContent()
   const reduce = useReducedMotion()
   const { scrollYProgress } = useScroll()
   const parallaxY = useTransform(scrollYProgress, [0, 1], [0, -28])
-  if (isTranslating) {
-    return (
-      // @ts-ignore — id/aria
-      <Section role="region" id="projects" aria-labelledby="projects-heading" aria-busy="true" padding={6} variant="section">
-        <Heading level={2} id="projects-heading" style={{ fontWeight: 800 }}>{ui.live.translating}</Heading>
-        <TextSkeleton lines={4} label={ui.live.translating} />
-      </Section>
-    )
-  }
   return (
-    // @ts-ignore — id/aria
-    <Section role="region" id="projects" aria-labelledby="projects-heading" padding={6} variant="section">
+    <section id="projects" aria-labelledby="projects-heading">
+      <Section padding={6} variant="section">
       <Heading level={2} id="projects-heading" style={{ fontWeight: 800 }}>{ui.sections.projects.heading}</Heading>
       <Text color="secondary" style={{ marginTop: 8 }}>{ui.sections.projects.subheading}</Text>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 20, marginTop: 24 }}>
@@ -61,6 +50,7 @@ export function Projects() {
           </motion.div>
         ))}
       </div>
-    </Section>
+      </Section>
+    </section>
   )
 }

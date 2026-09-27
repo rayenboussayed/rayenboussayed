@@ -3,28 +3,16 @@ import { Heading } from '@astryxdesign/core/Heading'
 import { Text } from '@astryxdesign/core/Text'
 import { Section } from '@astryxdesign/core/Section'
 import { motion, useReducedMotion } from 'motion/react'
-import { useContentWithLive as useContent } from '../context/LiveTranslationContext'
-import { TextSkeleton } from './TextSkeleton'
+import { experience, ui } from '../lib/content'
 
 /**
- * Experience timeline — scroll reveals staggered.
- * Live: skeleton while translating (no stale English flash, `aria-busy`).
+ * Experience timeline — scroll reveals staggered (English-only).
  */
 export function Experience() {
-  const { experience, ui, isTranslating } = useContent()
   const reduce = useReducedMotion()
-  if (isTranslating) {
-    return (
-      // @ts-ignore — id/aria pass-through
-      <Section role="region" id="experience" aria-labelledby="experience-heading" aria-busy="true" padding={6} variant="section">
-        <Heading level={2} id="experience-heading" style={{ fontWeight: 800 }}>{ui.live.translating}</Heading>
-        <TextSkeleton lines={4} label={ui.live.translating} />
-      </Section>
-    )
-  }
   return (
-    // @ts-ignore — id/aria pass-through
-    <Section role="region" id="experience" aria-labelledby="experience-heading" padding={6} variant="section">
+    <section id="experience" aria-labelledby="experience-heading">
+      <Section padding={6} variant="section">
       <Heading level={2} id="experience-heading" style={{ fontWeight: 800 }}>{ui.sections.experience.heading}</Heading>
       <div style={{ display: 'grid', gap: 16, marginTop: 24 }}>
         {experience.map((item, i) => (
@@ -48,6 +36,7 @@ export function Experience() {
           </motion.div>
         ))}
       </div>
-    </Section>
+      </Section>
+    </section>
   )
 }

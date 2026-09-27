@@ -1,14 +1,21 @@
 # Dev-only image (REQUIREMENTS v9 To-close-5). Never used for production builds.
-FROM node:22-alpine
+FROM platformatic/node-caged:26.3.1-alpine
 
 WORKDIR /app
 
 # Install deps first for better layer caching.
 COPY package.json package-lock.json ./
-RUN npm install
+RUN npm pkg delete scripts.prepare && npm install
 
 # Source is bind-mounted by 'docker run -v' (see docker:dev script); COPY is only a fallback.
 COPY . .
+
+# Anonymous volume for installed modules: the docker:dev script bind-mounts
+# the source over /app, which would otherwise shadow the image install when
+# combined with host node_modules. Declared here so plain 'docker run'
+# (without the script -v flags) still boots with its own module set.
+# NOTE: no VOLUME for /app itself — that would shadow the COPY fallback below.
+VOLUME /app/node_modules
 
 EXPOSE 5173
 

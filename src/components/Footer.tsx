@@ -1,21 +1,10 @@
-import { useContentWithLive as useContent } from '../context/LiveTranslationContext'
-import { TextSkeleton } from './TextSkeleton'
+import { profile, ui } from '../lib/content'
 
 /**
  * Footer — email + socials only, no form per constraints. Semantic <footer> landmark.
- * Live: skeleton while translating (no stale English flash, `aria-busy`).
+ * English-only static content.
  */
 export function Footer() {
-  const { profile, ui, isTranslating } = useContent()
-  if (isTranslating) {
-    return (
-      <footer id="contact" aria-labelledby="contact-heading" aria-busy="true" style={{ borderTop: '3px solid var(--color-border)', marginTop: 32, background: 'var(--color-background-surface)' }}>
-        <div style={{ maxWidth: 1120, margin: '0 auto', padding: '32px 16px' }}>
-          <TextSkeleton lines={3} label={ui.live.translating} />
-        </div>
-      </footer>
-    )
-  }
   return (
     <footer id="contact" aria-labelledby="contact-heading" style={{ borderTop: '3px solid var(--color-border)', marginTop: 32, background: 'var(--color-background-surface)' }}>
       <div style={{ maxWidth: 1120, margin: '0 auto', padding: '32px 16px' }}>

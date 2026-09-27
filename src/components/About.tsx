@@ -3,32 +3,19 @@ import { Heading } from '@astryxdesign/core/Heading'
 import { Text } from '@astryxdesign/core/Text'
 import { Section } from '@astryxdesign/core/Section'
 import { motion, useReducedMotion, useScroll, useTransform } from 'motion/react'
-import { useContentWithLive as useContent } from '../context/LiveTranslationContext'
-import { TextSkeleton } from './TextSkeleton'
+import { about, ui } from '../lib/content'
 
 /**
- * About — rich blocks from JSON, motion scroll reveal.
- * Live: skeleton while translating (no stale English flash, `aria-busy`).
+ * About — rich blocks from JSON, motion scroll reveal (English-only).
  */
 export function About() {
-  const { about, ui, isTranslating } = useContent()
   const reduce = useReducedMotion()
   const { scrollYProgress } = useScroll()
   const parallaxY = useTransform(scrollYProgress, [0, 1], [0, -28])
-  if (isTranslating) {
-    return (
-      // @ts-ignore — id/aria
-      <Section role="region" id="about" aria-labelledby="about-heading" aria-busy="true" padding={6} variant="section">
-        <Card padding={4} className="soft-pop-card">
-          <TextSkeleton lines={5} label={ui.live.translating} />
-        </Card>
-      </Section>
-    )
-  }
   // Parallax is decorative; disabled when user prefers reduced motion
   return (
-    // @ts-ignore — id/aria
-    <Section role="region" id="about" aria-labelledby="about-heading" padding={6} variant="section">
+    <section id="about" aria-labelledby="about-heading">
+      <Section padding={6} variant="section">
       <motion.div style={{ y: reduce ? 0 : parallaxY } as never}>
         <motion.div
           initial={reduce ? false : { opacity: 0, y: 24 }}
@@ -55,6 +42,7 @@ export function About() {
           </Card>
         </motion.div>
       </motion.div>
-    </Section>
+      </Section>
+    </section>
   )
 }

@@ -25,17 +25,6 @@
     "lastUpdated": "Last updated:",
     "minRead": "min read",
     "allRightsReserved": "All rights reserved.",
-    "skipLink": "Skip to main content",
-    "languageChangedTo": "Language changed to"
-  },
-  "live": {
-    "translating": "Translating…",
-    "machineTranslated": "Machine-translated",
-    "original": "Original",
-    "downloadingDetail": "Downloading translation model — {progress}% (on-device AI, may take a moment — cached after first use)",
-    "dataSaverBanner": "Data-saver is on — model is several hundred MB, download starts because you picked a language",
-    "errorPrefix": "Live translation error:",
-    "bannerDesc": "This content was translated on-device with NLLB (q4/q8→fp32, WASM/WebGPU cached). Original English is kept for SEO. Switch language via picker or click Original.",
-    "originalTooltip": "Show original English"
+    "skipLink": "Skip to main content"
   }
 }

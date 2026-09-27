@@ -4,29 +4,17 @@ import { Text } from '@astryxdesign/core/Text'
 import { Badge } from '@astryxdesign/core/Badge'
 import { Section } from '@astryxdesign/core/Section'
 import { motion, useReducedMotion } from 'motion/react'
-import { useContentWithLive as useContent } from '../context/LiveTranslationContext'
-import { TextSkeleton } from './TextSkeleton'
+import { skills, ui } from '../lib/content'
 
 /**
- * Skills grid — 14 cards, motion hover/tap + scroll reveal.
+ * Skills grid — 14 cards, motion hover/tap + scroll reveal (English-only).
  * Uses Astryx Section for page region (variant wash) per builder.md:7.
- * Live: skeleton while translating (no stale English flash, `aria-busy`).
  */
 export function Skills() {
-  const { skills, ui, isTranslating } = useContent()
   const reduce = useReducedMotion()
-  if (isTranslating) {
-    return (
-      // @ts-ignore — Section supports id/aria via rest props (BaseProps extends HTMLAttributes)
-      <Section role="region" id="skills" aria-labelledby="skills-heading" aria-busy="true" padding={6} variant="section">
-        <Heading level={2} id="skills-heading" style={{ fontWeight: 800 }}>{ui.live.translating}</Heading>
-        <TextSkeleton lines={3} label={ui.live.translating} />
-      </Section>
-    )
-  }
   return (
-    // @ts-ignore — Section supports id/aria via rest props (BaseProps extends HTMLAttributes)
-    <Section role="region" id="skills" aria-labelledby="skills-heading" padding={6} variant="section">
+    <section id="skills" aria-labelledby="skills-heading">
+      <Section padding={6} variant="section">
       <Heading level={2} id="skills-heading" style={{ fontWeight: 800 }}>{ui.sections.skills.heading}</Heading>
       <Text color="secondary" style={{ marginTop: 8 }}>{ui.sections.skills.subheading}</Text>
 
@@ -51,6 +39,7 @@ export function Skills() {
           </motion.div>
         ))}
       </div>
-    </Section>
+      </Section>
+    </section>
   )
 }

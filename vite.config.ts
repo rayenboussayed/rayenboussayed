@@ -2,16 +2,10 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import react, { reactCompilerPreset } from '@vitejs/plugin-react'
 import babel from '@rolldown/plugin-babel'
-import stylex from '@stylexjs/unplugin'
+import stylex from '@stylexjs/unplugin/vite'
 import { defineConfig } from 'vite'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-
-const lightningcssTargets = {
-  chrome: 123 << 16,
-  firefox: 120 << 16,
-  safari: (17 << 16) | (5 << 8),
-}
 
 export default defineConfig({
   plugins: [
@@ -28,8 +22,8 @@ export default defineConfig({
         ]
       },
     },
-    // @ts-ignore - stylex unplugin types vary by version
-    stylex.vite({
+    // @ts-ignore
+    stylex({
       dev: process.env.NODE_ENV === 'development',
       runtimeInjection: false,
       treeshakeCompensation: true,
@@ -37,9 +31,6 @@ export default defineConfig({
       unstable_moduleResolution: {
         type: 'commonJS',
         rootDir: __dirname,
-      },
-      lightningcssOptions: {
-        targets: lightningcssTargets,
       },
     }),
     react(),

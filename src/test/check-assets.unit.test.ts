@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-// .mjs import: collectPaths is dependency-free; the module main-guard keeps
-// the CLI runner from executing on import (REQUIREMENTS v13).
+// .mjs import: collectPaths is dependency-free and typed by the sibling
+// check-assets.d.mts; the module main-guard keeps import side-effect-free.
 import { collectPaths } from '../../scripts/check-assets.mjs'
 
 describe('collectPaths', () => {

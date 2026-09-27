@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!--
+    PWA source icon (REQUIREMENTS v14 §14).
+    Derived from the brand lightning mark (public/favicon.svg, 48x46 non-square):
+    square canvas, soft-pop background #FFF7F0, accent bolt #7B61FF.
+    The bolt stays inside the maskable safe zone (centered circle, radius 40%),
+    so 192/512 + maskable + apple-touch-icon PNGs can be generated at build via
+    @vite-pwa/assets-generator (see pwa-options.ts). Do not use skill glyphs
+    from public/icons/ here — they are not the brand mark.
+  -->
+  <rect width="512" height="512" rx="112" fill="#FFF7F0"/>
+  <path
+    d="M290 72 L168 284 h80 L222 440 L344 228 h-84 Z"
+    fill="#7B61FF"
+  />
+</svg>

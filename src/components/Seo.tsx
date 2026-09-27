@@ -1,11 +1,9 @@
-import { profile, seo, i18n } from '../lib/content'
+import { profile, seo } from '../lib/content'
 
 /**
  * SEO shell — renders React 19 native <title>/<meta>/<link> + JSON-LD.
  * React hoists these to <head> even though we mount inside <main>.
- * Locked to English (REQUIREMENTS v7 §5): live translation is client-side only,
- * invisible to crawlers — accepted tradeoff. `hreflang` points to the same
- * canonical URL for all supported languages.
+ * English-only site: single canonical URL, no alternate language versions.
  */
 export function Seo() {
   const entry = seo.default
@@ -32,10 +30,6 @@ export function Seo() {
       <meta name="description" content={entry.description} />
       <meta name="keywords" content={entry.keywords.join(', ')} />
       <link rel="canonical" href={entry.canonical} />
-      {/* hreflang for each supported language (same canonical: client-side live translation) */}
-      {i18n.supported.map((l) => (
-        <link key={l.code} rel="alternate" hrefLang={l.code} href={entry.canonical} />
-      ))}
       <link rel="alternate" hrefLang="x-default" href={entry.canonical} />
       {/* Open Graph */}
       <meta property="og:title" content={entry.title} />
