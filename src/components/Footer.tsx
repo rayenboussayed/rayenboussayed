@@ -1,10 +1,13 @@
-import { profile, ui } from '../lib/content'
+import { useContent } from '../hooks/useContent'
 
 /**
  * Footer — email + socials only, no form per constraints. Semantic <footer> landmark.
  * English-only static content.
  */
+const CURRENT_YEAR = new Date().getFullYear()
+
 export function Footer() {
+  const { profile, ui } = useContent()
   return (
     <footer id="contact" aria-labelledby="contact-heading" style={{ borderTop: '3px solid var(--color-border)', marginTop: 32, background: 'var(--color-background-surface)' }}>
       <div style={{ maxWidth: 1120, margin: '0 auto', padding: '32px 16px' }}>
@@ -22,7 +25,7 @@ export function Footer() {
             </a>
           ))}
         </div>
-        <p style={{ marginTop: 24, fontSize: 12, color: 'var(--color-text-secondary)' }}>©{new Date().getFullYear()} {profile.displayName}. {ui.common.allRightsReserved}</p>
+        <p style={{ marginTop: 24, fontSize: 12, color: 'var(--color-text-secondary)' }}>©{CURRENT_YEAR} {profile.displayName}. {ui.common.allRightsReserved}</p>
       </div>
     </footer>
   )

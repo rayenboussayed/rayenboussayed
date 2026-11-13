@@ -1,6 +1,6 @@
 import { Button } from '@astryxdesign/core/Button'
 import { motion, useReducedMotion } from 'motion/react'
-import { profile, ui } from '../lib/content'
+import { useContent } from '../hooks/useContent'
 
 
 /**
@@ -9,6 +9,7 @@ import { profile, ui } from '../lib/content'
  */
 export function Hero() {
   const reduce = useReducedMotion()
+  const { profile, ui } = useContent()
 
   const container = reduce
     ? {}

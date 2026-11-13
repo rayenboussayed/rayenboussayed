@@ -4,7 +4,7 @@ import { Text } from '@astryxdesign/core/Text'
 import { Badge } from '@astryxdesign/core/Badge'
 import { Section } from '@astryxdesign/core/Section'
 import { motion, useReducedMotion } from 'motion/react'
-import { skills, ui } from '../lib/content'
+import { useContent } from '../hooks/useContent'
 
 /**
  * Skills grid — 14 cards, motion hover/tap + scroll reveal (English-only).
@@ -12,6 +12,7 @@ import { skills, ui } from '../lib/content'
  */
 export function Skills() {
   const reduce = useReducedMotion()
+  const { skills, ui } = useContent()
   return (
     <section id="skills" aria-labelledby="skills-heading">
       <Section padding={6} variant="section">

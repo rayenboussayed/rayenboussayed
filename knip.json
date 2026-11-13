@@ -2,5 +2,14 @@
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "tags": [
     "-lintignore"
+  ],
+  "ignore": [
+    "scripts/check-assets.d.mts",
+    "src/theme/soft-pop.d.ts",
+    "src/theme/soft-pop.js"
+  ],
+  "ignoreDependencies": [
+    "@astryxdesign/theme-butter",
+    "@astryxdesign/theme-neutral"
   ]
 }

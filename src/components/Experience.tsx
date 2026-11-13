@@ -3,13 +3,14 @@ import { Heading } from '@astryxdesign/core/Heading'
 import { Text } from '@astryxdesign/core/Text'
 import { Section } from '@astryxdesign/core/Section'
 import { motion, useReducedMotion } from 'motion/react'
-import { experience, ui } from '../lib/content'
+import { useContent } from '../hooks/useContent'
 
 /**
  * Experience timeline — scroll reveals staggered (English-only).
  */
 export function Experience() {
   const reduce = useReducedMotion()
+  const { experience, ui } = useContent()
   return (
     <section id="experience" aria-labelledby="experience-heading">
       <Section padding={6} variant="section">
