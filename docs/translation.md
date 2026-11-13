@@ -101,7 +101,12 @@ Chain contract:
   "RYNBSD"); a backend that echoes a long sentence is treated as failed.
 - `init()` calls are serialized — concurrent warmups for two languages cannot
   double-download a model in one session. Failure of one warmable backend falls
-  through to the next.
+  through to the next. A warmup is timeboxed at 30 s: Chrome's `create()` may
+  stay pending forever without transient user activation (fresh profile,
+  `downloadable` pair), and `init()` must never wedge the page on it. A backend
+  whose warmup throws or times out is skipped for the rest of that init
+  (`backendId:lang`) — otherwise its still-pending session would burn the 20 s
+  chain timeout on every content chunk. Available again on the next `init()`.
 - `degraded` is counted run-wide by `translateContent` and returned as
   `{ content, degraded }` — never by the last chunk alone. The context gates
   the cache write on it (see §5).
@@ -113,7 +118,7 @@ Chain contract:
 | id | Source | Runs in | Availability rule | Timeout | What leaves the device |
 | --- | --- | --- | --- | --- | --- |
 | `cache` (stage 0) | IndexedDB `rynbsd-translation` / `translations` | window (main thread) | key `${lang}:v5:${hashContent(EnglishContent)}` exists and entry `lang`/`hash` match | none (IndexedDB await) | nothing |
-| `chrome` | Browser built-in Translator API (Chrome ≥138, Edge ≥148) | window only, main thread | `Translator` object exists **and** `Translator.availability({sourceLanguage:'en', targetLanguage})` ∈ `available` \| `downloadable` \| `downloading`; `null`/`unavailable`/throw → false | none in code; awaits UA session creation | nothing |
+| `chrome` | Browser built-in Translator API (Chrome ≥138, Edge ≥148) | window only, main thread | `Translator` object exists **and** `Translator.availability({sourceLanguage:'en', targetLanguage})` ∈ `available` \| `downloadable` \| `downloading`; `null`/`unavailable`/throw → false | 30 s warmup (init); 20 s per batch (chain default) | nothing |
 | `bergamot` | Mozilla Firefox Translations models via `@mkljczk/bergamot-translator` | dedicated module Worker (comlink) | static: `BERGAMOT_PAIRS` contains the language | none; `downloadTimeout: 0`, model fetch awaited | no site text; only model-file requests to `huggingface.co` |
 | `remote-google` | `translate.googleapis.com/translate_a/t` | window (`fetch`) | always (`Promise.resolve(true)`) | 8 s per POST (20 strings) | site copy ≈3 KB + target code |
 | `remote-mozhi-1` | `mozhi.aryak.me/api/translate` | window (`fetch`) | always | 8 s per string, 20 s wall per batch, concurrency 5 | site copy ≈3 KB + target code |

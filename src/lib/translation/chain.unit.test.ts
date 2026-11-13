@@ -221,6 +221,47 @@ describe('translate fallback chain', () => {
   })
 })
 
+describe('init warmup handling', () => {
+  const warnSpy = () => vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+  it('a throwing (not rejecting) warmup falls through to the next backend', async () => {
+    warnSpy()
+    const hanging: TranslationBackend = {
+      id: 'hanging',
+      isAvailable: () => Promise.resolve(true),
+      warmup: () => Promise.reject(new Error('NotAllowedError: activation required')),
+      translate: vi.fn<TranslationBackend['translate']>(async (texts) => texts.map(() => 'hanging:x')),
+    }
+    const service = chain([hanging, ok('remote')])
+    await service.init('ar')
+    const result = await service.translate(['hello'])
+    expect(result).toEqual(['remote:hello'])
+    expect(hanging.translate).not.toHaveBeenCalled()
+  })
+
+  it('a never-resolving warmup is timeboxed and the backend is skipped this init', async () => {
+    vi.useFakeTimers()
+    try {
+      warnSpy()
+      const hanging: TranslationBackend = {
+        id: 'hanging',
+        isAvailable: () => Promise.resolve(true),
+        warmup: () => new Promise<void>(() => {}), // Chrome create() pending forever
+        translate: vi.fn<TranslationBackend['translate']>(async (texts) => texts.map(() => 'hanging:x')),
+      }
+      const service = chain([hanging, ok('remote')])
+      const initDone = service.init('ar')
+      await vi.advanceTimersByTimeAsync(30_000)
+      await initDone
+      const result = await service.translate(['hello'])
+      expect(result).toEqual(['remote:hello'])
+      expect(hanging.translate).not.toHaveBeenCalled()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+})
+
 describe('isAcceptableTranslation', () => {
   it.each([
     ['empty string', '', 'Home', false],

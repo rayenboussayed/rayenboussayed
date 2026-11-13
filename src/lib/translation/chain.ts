@@ -37,7 +37,10 @@
  *
  * Availability is cached per (backend, language): positives for the session, negatives
  * for 60 s, rejected probes not at all. `init()` calls are serialized — concurrent
- * warmups for two languages cannot double-download a model in one session.
+ * warmups for two languages cannot double-download a model in one session. Warmups are
+ * timeboxed at 30 s; a backend whose warmup throws or times out is skipped for the rest
+ * of that init (`backendId:lang`) instead of wedging the page or burning the 20 s
+ * backend timeout on every content chunk.
  */
 
 import { isAcceptableTranslation } from './guard'
@@ -67,6 +70,7 @@ export interface TranslationBackend {
 }
 
 const BACKEND_TIMEOUT_MS = 20_000
+const WARMUP_TIMEOUT_MS = 30_000
 const AVAILABILITY_CACHE_LIMIT = 64
 const NEGATIVE_AVAILABILITY_TTL_MS = 60_000
 const BREAKER_THRESHOLD = 3
@@ -84,6 +88,10 @@ export class TranslationChainService {
   private currentLang: string | null = null
   /** Ids of backends that produced at least one accepted string in the last run. */
   private providers: string[] = []
+  /** `backendId:lang` pairs whose warmup threw or exceeded WARMUP_TIMEOUT_MS.
+   *  Such a backend cannot serve this init — skip its (otherwise
+   *  permanently pending) sessions instead of burning 20 s per chunk. */
+  private warmupFailed = new Set<string>()
 
   /** Backend ids that contributed to the last `translate()` run (e.g. ['bergamot']). */
   get lastProviders(): readonly string[] {
@@ -110,23 +118,32 @@ export class TranslationChainService {
 
   private async initInner(lang: string, onProgress?: (p: ChainProgress) => void): Promise<void> {
     this.currentLang = lang
+    this.warmupFailed.clear()
     for (const backend of this.instances) {
       if (!backend.warmup) continue
       if (!(await this.available(backend, lang))) continue
       try {
-        await backend.warmup(lang, (fraction) => {
-          onProgress?.({
-            status: 'download',
-            loaded: Math.round(fraction * 1000),
-            total: 1000,
-            progress: fraction * 100,
-          })
-        })
+        // Chrome's create() may stay pending forever without transient user
+        // activation (fresh profile, 'downloadable' pair) — a warmup is a
+        // best-effort download kick, never a reason to wedge the page.
+        await this.withTimeout(
+          backend.warmup(lang, (fraction) => {
+            onProgress?.({
+              status: 'download',
+              loaded: Math.round(fraction * 1000),
+              total: 1000,
+              progress: fraction * 100,
+            })
+          }),
+          WARMUP_TIMEOUT_MS,
+        )
         onProgress?.({ status: 'ready', loaded: 1, total: 1, progress: 100 })
         return
       } catch {
-        // Warmup failed (e.g. Translator NotAllowedError without a gesture) —
-        // transparently continue to the next backend.
+        // Warmup failed or timed out (e.g. Translator NotAllowedError without
+        // a gesture) — never serve from this backend this init; continue to
+        // the next one.
+        this.warmupFailed.add(`${backend.id}:${lang}`)
         onProgress?.({ status: 'download', progress: 0 })
       }
     }
@@ -145,6 +162,10 @@ export class TranslationChainService {
 
     for (const backend of this.instances) {
       if (pending.length === 0) break
+      if (this.warmupFailed.has(`${backend.id}:${targetLang}`)) {
+        failures.push(backend.id)
+        continue
+      }
       if (this.isOfflineRemote(backend)) {
         failures.push(backend.id)
         continue
