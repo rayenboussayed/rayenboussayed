@@ -5,7 +5,7 @@ import { Badge } from '@astryxdesign/core/Badge'
 import { Button } from '@astryxdesign/core/Button'
 import { Section } from '@astryxdesign/core/Section'
 import { motion, useReducedMotion, useScroll, useTransform } from 'motion/react'
-import { projects, ui } from '../lib/content'
+import { useContent } from '../hooks/useContent'
 
 /**
  * Projects — cards with tags (Badge) and CTA, hover tilt + scroll reveal.
@@ -14,6 +14,7 @@ import { projects, ui } from '../lib/content'
  */
 export function Projects() {
   const reduce = useReducedMotion()
+  const { projects, ui } = useContent()
   const { scrollYProgress } = useScroll()
   const parallaxY = useTransform(scrollYProgress, [0, 1], [0, -28])
   return (

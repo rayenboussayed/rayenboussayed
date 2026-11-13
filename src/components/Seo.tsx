@@ -1,11 +1,13 @@
-import { profile, seo } from '../lib/content'
+import { useContent } from '../hooks/useContent'
 
 /**
  * SEO shell — renders React 19 native <title>/<meta>/<link> + JSON-LD.
  * React hoists these to <head> even though we mount inside <main>.
- * English-only site: single canonical URL, no alternate language versions.
+ * Content follows the active language (machine-translated at runtime);
+ * the canonical URL and lang/dir stay English for crawlers.
  */
 export function Seo() {
+  const { profile, seo } = useContent()
   const entry = seo.default
 
   const personJsonLd = {
@@ -42,8 +44,12 @@ export function Seo() {
       <meta name="twitter:title" content={entry.title} />
       <meta name="twitter:description" content={entry.description} />
       <meta name="twitter:image" content={entry.ogImage} />
-      {/* JSON-LD */}
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }} />
+      {/* JSON-LD — role/location may be machine-translated; escape "<" so a
+          hostile endpoint cannot break out of the <script> block. */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd).replace(/</g, '\\u003c') }}
+      />
     </>
   )
 }

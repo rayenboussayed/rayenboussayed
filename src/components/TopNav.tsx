@@ -1,13 +1,15 @@
 import { Button } from '@astryxdesign/core/Button'
 import { TopNav as AstryxTopNav, TopNavHeading, TopNavItem } from '@astryxdesign/core/TopNav'
 import { motion } from 'motion/react'
-import { profile, ui } from '../lib/content'
+import { LanguageSelector } from './LanguageSelector'
+import { useContent } from '../hooks/useContent'
 
 /**
  * TopNav — static English navigation (no language picker).
  * - Nav items + resume/certs CTAs from CMS (`src/data/*.json`).
  */
 export function TopNav() {
+  const { profile, ui } = useContent()
   return (
     <>
       <AstryxTopNav
@@ -22,6 +24,7 @@ export function TopNav() {
         }
         endContent={
           <>
+            <LanguageSelector />
             <Button label={profile.ctaLabels.resumeShort} variant="primary" size="sm" href={profile.resumeUrl} target="_blank" rel="noreferrer" />
             <Button label={profile.ctaLabels.certsShort} variant="secondary" size="sm" href={profile.certificationsUrl} target="_blank" rel="noreferrer" />
           </>

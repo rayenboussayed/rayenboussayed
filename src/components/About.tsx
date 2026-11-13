@@ -3,13 +3,14 @@ import { Heading } from '@astryxdesign/core/Heading'
 import { Text } from '@astryxdesign/core/Text'
 import { Section } from '@astryxdesign/core/Section'
 import { motion, useReducedMotion, useScroll, useTransform } from 'motion/react'
-import { about, ui } from '../lib/content'
+import { useContent } from '../hooks/useContent'
 
 /**
  * About — rich blocks from JSON, motion scroll reveal (English-only).
  */
 export function About() {
   const reduce = useReducedMotion()
+  const { about, ui } = useContent()
   const { scrollYProgress } = useScroll()
   const parallaxY = useTransform(scrollYProgress, [0, 1], [0, -28])
   // Parallax is decorative; disabled when user prefers reduced motion

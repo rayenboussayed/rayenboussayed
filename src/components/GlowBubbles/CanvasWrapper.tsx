@@ -44,7 +44,7 @@ const bubbles: Array<{ pos: [number, number, number]; scale: number; colorA: str
  *   scene.environment, so `<Environment preset="city">` only added a CDN
  *   fetch that could suspend the canvas blank (§9.3). Local lights only.
  */
-export function GlowCanvas({ active }: { active: boolean }) {
+function GlowCanvas({ active }: { active: boolean }) {
   const palette = themeConfig.bubblePalette.length >= 2 ? themeConfig.bubblePalette : ['#FF6B9D', '#7B61FF']
   return (
     <Canvas
