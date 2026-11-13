@@ -67,7 +67,9 @@ See `BENCHMARKS.md` — Lighthouse 100/100/100 desktop/mobile, LCP 1028ms, CLS 0
 
 ## Deploy
 
-`dist/` is static. Sync canonical `seo.json:canonical` with `robots.txt`+`sitemap.xml` `https://rynbsd.vercel.app` (or your domain) — update `lastmod` in `sitemap.xml`.
+Netlify, continuous deployment from `main`: `netlify.toml` sets `npm run build` → publish `dist/` (Node 26 via `.nvmrc`/`NODE_VERSION`) plus the `COOP`/`COEP: credentialless` headers the dev/preview servers set for on-device translation. Never publish the repo root — the dev `index.html` it serves forces `/src/main.tsx` as a module and the page renders blank.
+
+Canonical: sync `seo.json:canonical` with `robots.txt`+`sitemap.xml` (currently `https://rynbsd.vercel.app` — update `lastmod` in `sitemap.xml`) if the primary domain changes.
 
 ## License
 
