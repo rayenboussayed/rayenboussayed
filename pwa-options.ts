@@ -15,6 +15,11 @@ const FONT_MAX_ENTRIES = 10
 
 export const pwaOptions: VitePWAOptions = {
   strategies: 'generateSW',
+  injectRegister: 'auto',
+  minify: true,
+  includeManifestIcons: true,
+  disable: false,
+  injectManifest: {},
   // Locked decision: silent auto-update (skipWaiting + clientsClaim).
   registerType: 'autoUpdate',
   // Manifest link is auto-injected at build; theme-color + apple-touch-icon

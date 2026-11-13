@@ -3,12 +3,27 @@ import { fileURLToPath } from 'node:url'
 import react, { reactCompilerPreset } from '@vitejs/plugin-react'
 import babel from '@rolldown/plugin-babel'
 import stylex from '@stylexjs/unplugin/vite'
+import { VitePWA } from 'vite-plugin-pwa'
+import { pwaOptions } from './pwa-options.js'
 import { defineConfig } from 'vite'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
+  server: {
+    headers: {
+      'Cross-Origin-Opener-Policy': 'same-origin',
+      'Cross-Origin-Embedder-Policy': 'credentialless',
+    },
+  },
+  preview: {
+    headers: {
+      'Cross-Origin-Opener-Policy': 'same-origin',
+      'Cross-Origin-Embedder-Policy': 'credentialless',
+    },
+  },
   plugins: [
+    VitePWA(pwaOptions),
     {
       name: 'astryx-css-layer-order',
       transformIndexHtml() {
@@ -16,7 +31,7 @@ export default defineConfig({
           {
             tag: 'style',
             children:
-              '@layer reset, priority1, priority2, priority3, priority4, priority5, priority6, priority7, priority8, priority9, astryx-theme;',
+              '@layer reset, priority1, priority2, priority3, priority4, priority5, priority6, priority7, priority8, priority9, astryx-base, astryx-theme;',
             injectTo: 'head-prepend',
           },
         ]
@@ -49,6 +64,6 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    exclude: ['@astryxdesign/core', '@astryxdesign/theme-neutral', '@astryxdesign/theme-y2k', '@astryxdesign/theme-butter'],
+    exclude: ['@astryxdesign/core', '@astryxdesign/theme-neutral', '@astryxdesign/theme-y2k', '@astryxdesign/theme-butter', '@mkljczk/bergamot-translator'],
   },
 })

@@ -29,6 +29,8 @@ test('pwa: SW registers, manifest 200, offline reload serves fallback', async ({
   await expect(page.getByRole('heading', { name: /Skills|skills/ }).first()).toBeVisible()
 
   // Service worker registered and controlling the page (autoUpdate: silent).
+  await page.evaluate(() => navigator.serviceWorker.ready)
+  await page.waitForFunction(() => !!navigator.serviceWorker.controller, { timeout: 10_000 })
   const registration = await page.evaluate(() =>
     navigator.serviceWorker.getRegistration().then((r) => r?.scope ?? null),
   )
